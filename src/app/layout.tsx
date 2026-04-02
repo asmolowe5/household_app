@@ -12,6 +12,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Smolowe Portal",
   description: "Household management portal",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Portal",
+  },
 };
 
 export const viewport: Viewport = {
