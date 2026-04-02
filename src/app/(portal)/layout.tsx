@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/shared/lib/supabase/server";
 import { Sidebar } from "@/shared/components/sidebar";
 import { Header } from "@/shared/components/header";
+import { AiChatPanel } from "@/modules/finance/components/ai-chat-panel";
 
 export default async function PortalLayout({
   children,
@@ -22,6 +23,7 @@ export default async function PortalLayout({
         <Header />
         <main className="p-6">{children}</main>
       </div>
+      <AiChatPanel />
     </div>
   );
 }
