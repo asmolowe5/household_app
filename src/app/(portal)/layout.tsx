@@ -19,7 +19,7 @@ export default async function PortalLayout({
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 ml-[220px]">
+      <div className="flex-1" style={{ marginLeft: '220px' }}>
         <Header />
         <main className="p-6">{children}</main>
       </div>

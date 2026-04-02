@@ -19,7 +19,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
           View all <ArrowRight size={12} />
         </Link>
       </div>
-      <div className="rounded-lg border border-border bg-bg-secondary">
+      <div className="rounded-lg border border-border-default bg-bg-secondary">
         {transactions.length === 0 ? (
           <div className="py-6 text-center text-sm text-text-tertiary">
             No transactions yet. Connect an account to get started.

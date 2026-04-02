@@ -23,7 +23,7 @@ export default async function AccountsSettingsPage() {
       ) : (
         <div className="space-y-4">
           {(plaidItems ?? []).map((item: any) => (
-            <div key={item.id} className="rounded-lg border border-border bg-bg-secondary p-4">
+            <div key={item.id} className="rounded-lg border border-border-default bg-bg-secondary p-4">
               <h3 className="text-sm font-medium text-text-primary mb-2">
                 {item.institution_name}
               </h3>

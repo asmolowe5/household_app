@@ -17,7 +17,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-[220px] h-screen fixed left-0 top-0 border-r border-border bg-bg-secondary flex flex-col">
+    <aside className="h-screen fixed left-0 top-0 border-r border-border-default bg-bg-secondary flex flex-col" style={{ width: '220px' }}>
       <div className="p-6">
         <h1 className="text-base font-semibold text-text-primary tracking-tight">
           Smolowe Portal

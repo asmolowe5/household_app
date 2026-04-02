@@ -15,7 +15,7 @@ export function CategoryList({ categories }: CategoryListProps) {
   }
 
   return (
-    <div className="rounded-lg border border-border bg-bg-secondary">
+    <div className="rounded-lg border border-border-default bg-bg-secondary">
       {categories.map((item) => (
         <CategoryRow key={item.category.id} item={item} />
       ))}

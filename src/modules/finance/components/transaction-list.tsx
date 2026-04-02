@@ -40,7 +40,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
             placeholder="Search transactions..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-md bg-bg-tertiary border border-border text-sm text-text-primary focus:outline-none focus:border-accent"
+            className="w-full pl-9 pr-3 py-2 rounded-md bg-bg-tertiary border border-border-default text-sm text-text-primary focus:outline-none focus:border-accent"
           />
         </div>
         <div className="flex gap-1">
@@ -61,7 +61,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-bg-secondary">
+      <div className="rounded-lg border border-border-default bg-bg-secondary">
         {filtered.length === 0 ? (
           <div className="py-8 text-center text-sm text-text-tertiary">
             No transactions found.

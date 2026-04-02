@@ -19,7 +19,7 @@ export default function FinanceLayout({
 
   return (
     <div>
-      <nav className="flex gap-1 mb-6 border-b border-border pb-3">
+      <nav className="flex gap-1 mb-6 border-b border-border-default pb-3">
         {subNavItems.map((item) => {
           const isActive = item.exact
             ? pathname === item.href

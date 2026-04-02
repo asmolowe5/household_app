@@ -16,7 +16,7 @@ export default function SettingsPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="flex items-center gap-4 p-4 rounded-lg border border-border bg-bg-secondary hover:bg-bg-tertiary transition-colors"
+            className="flex items-center gap-4 p-4 rounded-lg border border-border-default bg-bg-secondary hover:bg-bg-tertiary transition-colors"
           >
             <item.icon size={20} className="text-text-tertiary" />
             <div>

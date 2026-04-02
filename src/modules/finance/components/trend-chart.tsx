@@ -10,7 +10,7 @@ interface TrendChartProps {
 
 export function TrendChart({ data, title, color = "var(--accent)" }: TrendChartProps) {
   return (
-    <div className="rounded-lg border border-border bg-bg-secondary p-4">
+    <div className="rounded-lg border border-border-default bg-bg-secondary p-4">
       <h3 className="text-sm font-medium text-text-secondary mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={240}>
         <BarChart data={data} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>

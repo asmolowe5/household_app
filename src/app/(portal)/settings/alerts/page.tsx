@@ -24,7 +24,7 @@ export default async function AlertsSettingsPage() {
       ) : (
         <div className="space-y-2">
           {(alertRules ?? []).map((rule: any) => (
-            <div key={rule.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-bg-secondary">
+            <div key={rule.id} className="flex items-center justify-between p-3 rounded-lg border border-border-default bg-bg-secondary">
               <div>
                 <p className="text-sm text-text-primary">
                   {rule.trigger_type}: {JSON.stringify(rule.trigger_params)}

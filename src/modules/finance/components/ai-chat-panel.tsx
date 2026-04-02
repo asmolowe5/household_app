@@ -74,9 +74,9 @@ export function AiChatPanel() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-20 right-6 z-50 w-96 h-[500px] rounded-lg border border-border bg-bg-secondary shadow-lg flex flex-col overflow-hidden"
+            className="fixed bottom-20 right-6 z-50 w-96 h-[500px] rounded-lg border border-border-default bg-bg-secondary shadow-lg flex flex-col overflow-hidden"
           >
-            <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-border-default flex items-center gap-2">
               <span className="text-sm font-medium text-text-primary">AI Advisor</span>
             </div>
 
@@ -99,7 +99,7 @@ export function AiChatPanel() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="px-4 py-3 border-t border-border">
+            <div className="px-4 py-3 border-t border-border-default">
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -107,7 +107,7 @@ export function AiChatPanel() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                   placeholder="Ask about your finances..."
-                  className="flex-1 px-3 py-2 rounded-md bg-bg-tertiary border border-border text-sm text-text-primary focus:outline-none focus:border-accent"
+                  className="flex-1 px-3 py-2 rounded-md bg-bg-tertiary border border-border-default text-sm text-text-primary focus:outline-none focus:border-accent"
                 />
                 <button
                   onClick={handleSend}
