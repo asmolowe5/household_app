@@ -1,54 +1,92 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState, useCallback } from "react";
 import { usePlaidLink } from "react-plaid-link";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
 
-export function PlaidLinkButton({ onSuccess }: { onSuccess?: () => void }) {
+interface PlaidLinkButtonProps {
+  variant?: "primary" | "secondary";
+}
+
+export function PlaidLinkButton({ variant = "primary" }: PlaidLinkButtonProps) {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const fetchLinkToken = useCallback(async () => {
+  async function fetchLinkToken() {
     setLoading(true);
-    const res = await fetch("/api/plaid/create-link-token", { method: "POST" });
-    const data = await res.json();
-    setLinkToken(data.link_token);
-    setLoading(false);
-  }, []);
+    setError(null);
+    try {
+      const res = await fetch("/api/plaid/create-link-token", { method: "POST" });
+      const data = await res.json();
+      if (data.link_token) {
+        setLinkToken(data.link_token);
+      } else {
+        setError("Could not connect to Plaid");
+      }
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const onSuccess = useCallback(
+    async (publicToken: string, metadata: { institution?: { name?: string; institution_id?: string } | null }) => {
+      setLoading(true);
+      try {
+        await fetch("/api/plaid/exchange-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            public_token: publicToken,
+            institution: metadata.institution,
+          }),
+        });
+        router.refresh();
+      } catch {
+        setError("Failed to connect account");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router],
+  );
 
   const { open, ready } = usePlaidLink({
     token: linkToken,
-    onSuccess: async (publicToken, metadata) => {
-      await fetch("/api/plaid/exchange-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          public_token: publicToken,
-          institution: metadata.institution,
-        }),
-      });
-      onSuccess?.();
-    },
+    onSuccess,
   });
 
-  useEffect(() => {
-    if (linkToken && ready) {
-      open();
-    }
-  }, [linkToken, ready, open]);
+  if (linkToken && ready) {
+    setTimeout(() => open(), 0);
+  }
+
+  if (variant === "secondary") {
+    return (
+      <button
+        onClick={fetchLinkToken}
+        disabled={loading}
+        className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-accent transition-colors hover:bg-accent-muted disabled:opacity-50"
+      >
+        <Plus size={14} />
+        {loading ? "Connecting..." : "Add Account"}
+      </button>
+    );
+  }
 
   return (
-    <button
-      onClick={fetchLinkToken}
-      disabled={loading}
-      className={cn(
-        "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors",
-        "bg-accent text-white hover:opacity-90 disabled:opacity-50"
-      )}
-    >
-      <Plus size={16} />
-      {loading ? "Connecting..." : "Connect Account"}
-    </button>
+    <div className="text-center">
+      <button
+        onClick={fetchLinkToken}
+        disabled={loading}
+        className="rounded-xl bg-gradient-to-r from-accent to-accent-strong px-6 py-3 text-sm font-semibold text-slate-950 transition-opacity hover:opacity-90 disabled:opacity-50"
+      >
+        {loading ? "Connecting..." : "Connect Your Bank"}
+      </button>
+      {error && <p className="mt-2 text-xs text-status-red">{error}</p>}
+    </div>
   );
 }
