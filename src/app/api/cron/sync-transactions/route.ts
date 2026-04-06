@@ -1,26 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
+// src/app/api/cron/sync-transactions/route.ts
+import { NextResponse } from "next/server";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
+import { syncPlaidItem } from "@/modules/finance/lib/sync-engine";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const admin = createAdminClient();
-  const { data: plaidItems } = await admin.from("plaid_items").select("id");
+  const supabase = createAdminClient();
 
-  for (const item of plaidItems ?? []) {
+  const { data: items } = await supabase
+    .from("plaid_items")
+    .select("id, access_token, cursor");
+
+  if (!items || items.length === 0) {
+    return NextResponse.json({ message: "No items to sync" });
+  }
+
+  const results = [];
+  for (const item of items) {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/plaid/sync`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plaid_item_id: item.id }),
+      const result = await syncPlaidItem(
+        supabase,
+        item.id,
+        item.access_token,
+        item.cursor,
+      );
+      results.push({ id: item.id, ...result });
+    } catch (err) {
+      results.push({
+        id: item.id,
+        error: err instanceof Error ? err.message : "Unknown error",
       });
-    } catch (error) {
-      console.error(`Sync failed for ${item.id}:`, error);
     }
   }
 
-  return NextResponse.json({ success: true, items_synced: plaidItems?.length ?? 0 });
+  return NextResponse.json({ synced: results });
 }
