@@ -23,6 +23,15 @@ export function formatCurrencyCents(amount: number): string {
   }).format(amount);
 }
 
+export function formatCurrencyPrecise(amount: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Math.abs(amount));
+}
+
 export function formatDate(date: string | Date): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",

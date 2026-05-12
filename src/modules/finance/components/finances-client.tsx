@@ -35,7 +35,7 @@ const iconMap: Record<string, LucideIcon> = {
   repeat: Repeat,
 };
 
-function getIcon(name: string | null): LucideIcon {
+function getIcon(name: string | null | undefined): LucideIcon {
   if (!name) return HelpCircle;
   return iconMap[name] ?? HelpCircle;
 }

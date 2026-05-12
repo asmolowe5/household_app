@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
+import { ModuleShell } from "@/shared/components/module-shell";
 
 const subNavItems = [
   { href: "/finance", label: "Dashboard", exact: true },
@@ -17,30 +18,34 @@ export default function FinanceLayout({
 }) {
   const pathname = usePathname();
 
+  const subNav = (
+    <nav className="flex gap-1 border-b border-border-default pb-3">
+      {subNavItems.map((item) => {
+        const isActive = item.exact
+          ? pathname === item.href
+          : pathname.startsWith(item.href);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-sm transition-colors",
+              isActive
+                ? "bg-bg-tertiary text-text-primary font-medium"
+                : "text-text-secondary hover:text-text-primary",
+            )}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
   return (
-    <div>
-      <nav className="flex gap-1 mb-6 border-b border-border-default pb-3">
-        {subNavItems.map((item) => {
-          const isActive = item.exact
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-sm transition-colors",
-                isActive
-                  ? "bg-bg-tertiary text-text-primary font-medium"
-                  : "text-text-secondary hover:text-text-primary"
-              )}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+    <ModuleShell title="Finance">
+      {subNav}
       {children}
-    </div>
+    </ModuleShell>
   );
 }
