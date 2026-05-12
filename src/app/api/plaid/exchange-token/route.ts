@@ -1,15 +1,12 @@
-// src/app/api/plaid/exchange-token/route.ts
 import { NextResponse } from "next/server";
-import { createClient } from "@/shared/lib/supabase/server";
+import { getCurrentUser } from "@/shared/lib/auth/session";
 import { plaidClient } from "@/modules/finance/lib/plaid-client";
 import { syncPlaidItem } from "@/modules/finance/lib/sync-engine";
+import { db } from "@/db";
+import { plaidItems, accounts } from "@/db/schema";
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -22,52 +19,52 @@ export async function POST(request: Request) {
 
   const { access_token, item_id } = exchangeResponse.data;
 
-  const { data: plaidItem, error: insertError } = await supabase
-    .from("plaid_items")
-    .insert({
-      user_id: user.id,
-      access_token,
-      plaid_item_id: item_id,
-      institution_name: institution?.name ?? "Unknown",
-      institution_id: institution?.institution_id ?? null,
+  const [plaidItem] = await db
+    .insert(plaidItems)
+    .values({
+      userId: user.id,
+      accessToken: access_token,
+      plaidItemId: item_id,
+      institutionName: institution?.name ?? "Unknown",
+      institutionId: institution?.institution_id ?? null,
     })
-    .select("id")
-    .single();
+    .returning({ id: plaidItems.id });
 
-  if (insertError || !plaidItem) {
+  if (!plaidItem) {
     return NextResponse.json(
       { error: "Failed to save bank connection" },
       { status: 500 },
     );
   }
 
-  const accountsResponse = await plaidClient.accountsGet({
-    access_token,
-  });
+  const accountsResponse = await plaidClient.accountsGet({ access_token });
 
   for (const acct of accountsResponse.data.accounts) {
-    await supabase.from("accounts").upsert(
-      {
-        plaid_item_id: plaidItem.id,
-        plaid_account_id: acct.account_id,
+    await db
+      .insert(accounts)
+      .values({
+        plaidItemId: plaidItem.id,
+        plaidAccountId: acct.account_id,
         name: acct.name,
-        official_name: acct.official_name,
+        officialName: acct.official_name,
         type: acct.type,
         subtype: acct.subtype,
-        current_balance: acct.balances.current,
-        available_balance: acct.balances.available,
-        iso_currency_code: acct.balances.iso_currency_code ?? "USD",
-        last_balance_update: new Date().toISOString(),
-      },
-      { onConflict: "plaid_account_id" },
-    );
+        currentBalance: acct.balances.current != null ? String(acct.balances.current) : null,
+        availableBalance: acct.balances.available != null ? String(acct.balances.available) : null,
+        isoCurrencyCode: acct.balances.iso_currency_code ?? "USD",
+        lastBalanceUpdate: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: accounts.plaidAccountId,
+        set: {
+          currentBalance: acct.balances.current != null ? String(acct.balances.current) : null,
+          availableBalance: acct.balances.available != null ? String(acct.balances.available) : null,
+          lastBalanceUpdate: new Date(),
+        },
+      });
   }
 
-  const syncResult = await syncPlaidItem(
-    plaidItem.id,
-    access_token,
-    null,
-  );
+  const syncResult = await syncPlaidItem(plaidItem.id, access_token, null);
 
   return NextResponse.json({
     success: true,

@@ -1,46 +1,39 @@
-// src/app/api/plaid/sync/route.ts
 import { NextResponse } from "next/server";
-import { createClient } from "@/shared/lib/supabase/server";
+import { getCurrentUser } from "@/shared/lib/auth/session";
 import { syncPlaidItem } from "@/modules/finance/lib/sync-engine";
+import { db } from "@/db";
+import { plaidItems, transactions, categoryRules } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { plaid_item_id } = await request.json();
 
-  const { data: item } = await supabase
-    .from("plaid_items")
-    .select("id, access_token, cursor")
-    .eq("id", plaid_item_id)
-    .eq("user_id", user.id)
-    .single();
+  const [item] = await db
+    .select({
+      id: plaidItems.id,
+      accessToken: plaidItems.accessToken,
+      cursor: plaidItems.cursor,
+    })
+    .from(plaidItems)
+    .where(and(eq(plaidItems.id, plaid_item_id), eq(plaidItems.userId, user.id)))
+    .limit(1);
 
-  if (!item) {
+  if (!item || !item.accessToken) {
     return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
 
-  const result = await syncPlaidItem(
-    item.id,
-    item.access_token,
-    item.cursor,
-  );
+  const result = await syncPlaidItem(item.id, item.accessToken, item.cursor);
 
   return NextResponse.json({ success: true, ...result });
 }
 
 export async function PATCH(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -52,37 +45,34 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Missing transaction_id" }, { status: 400 });
   }
 
-  const { error } = await supabase
-    .from("transactions")
-    .update({
-      ...(portal_category_id !== undefined && { portal_category_id }),
-      ...(transaction_type !== undefined && { transaction_type }),
-      ...(notes !== undefined && { notes }),
-      ...(is_reviewed !== undefined && { is_reviewed }),
-    })
-    .eq("id", transaction_id);
+  const setValues: Record<string, unknown> = {};
+  if (portal_category_id !== undefined) setValues.portalCategoryId = portal_category_id;
+  if (transaction_type !== undefined) setValues.transactionType = transaction_type;
+  if (notes !== undefined) setValues.notes = notes;
+  if (is_reviewed !== undefined) setValues.isReviewed = is_reviewed;
 
-  if (error) {
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
-  }
+  await db.update(transactions).set(setValues).where(eq(transactions.id, transaction_id));
 
   if (portal_category_id) {
-    const { data: txn } = await supabase
-      .from("transactions")
-      .select("merchant_name")
-      .eq("id", transaction_id)
-      .single();
+    const [txn] = await db
+      .select({ merchantName: transactions.merchantName })
+      .from(transactions)
+      .where(eq(transactions.id, transaction_id))
+      .limit(1);
 
-    if (txn?.merchant_name) {
-      await supabase.from("category_rules").upsert(
-        {
-          pattern: txn.merchant_name.toLowerCase(),
-          category_id: portal_category_id,
+    if (txn?.merchantName) {
+      await db
+        .insert(categoryRules)
+        .values({
+          pattern: txn.merchantName.toLowerCase(),
+          categoryId: portal_category_id,
           source: "user",
-          created_by: user.id,
-        },
-        { onConflict: "pattern" },
-      );
+          createdBy: user.id,
+        })
+        .onConflictDoUpdate({
+          target: categoryRules.pattern,
+          set: { categoryId: portal_category_id, source: "user" },
+        });
     }
   }
 
