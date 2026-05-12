@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/shared/lib/auth/session";
-import { PortalShell } from "@/shared/components/portal-shell";
+import { PortalShellClient } from "./portal-shell-client";
 
 export default async function PortalLayout({
   children,
@@ -13,5 +13,5 @@ export default async function PortalLayout({
     redirect("/login");
   }
 
-  return <PortalShell>{children}</PortalShell>;
+  return <PortalShellClient>{children}</PortalShellClient>;
 }
