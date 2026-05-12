@@ -64,7 +64,6 @@ export async function POST(request: Request) {
   }
 
   const syncResult = await syncPlaidItem(
-    supabase,
     plaidItem.id,
     access_token,
     null,

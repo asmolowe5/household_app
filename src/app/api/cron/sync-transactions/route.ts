@@ -1,6 +1,7 @@
 // src/app/api/cron/sync-transactions/route.ts
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/shared/lib/supabase/admin";
+import { db } from "@/db";
+import { plaidItems } from "@/db/schema";
 import { syncPlaidItem } from "@/modules/finance/lib/sync-engine";
 
 export async function GET(request: Request) {
@@ -9,11 +10,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createAdminClient();
-
-  const { data: items } = await supabase
-    .from("plaid_items")
-    .select("id, access_token, cursor");
+  const items = await db
+    .select({
+      id: plaidItems.id,
+      accessToken: plaidItems.accessToken,
+      cursor: plaidItems.cursor,
+    })
+    .from(plaidItems);
 
   if (!items || items.length === 0) {
     return NextResponse.json({ message: "No items to sync" });
@@ -21,11 +24,11 @@ export async function GET(request: Request) {
 
   const results = [];
   for (const item of items) {
+    if (!item.accessToken) continue;
     try {
       const result = await syncPlaidItem(
-        supabase,
         item.id,
-        item.access_token,
+        item.accessToken,
         item.cursor,
       );
       results.push({ id: item.id, ...result });
