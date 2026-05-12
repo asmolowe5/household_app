@@ -11,8 +11,8 @@ export async function syncPlaidItem(
   accessToken: string,
   cursor: string | null,
 ): Promise<{ added: number; modified: number; removed: number; newCursor: string }> {
-  const categories = await getCategories(supabase);
-  const rules = await getCategoryRules(supabase);
+  const categories = await getCategories();
+  const rules = await getCategoryRules();
 
   let currentCursor = cursor ?? "";
   let hasMore = true;

@@ -1,67 +1,85 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { db } from "@/db";
+import { accounts, categories, categoryRules, transactions } from "@/db/schema";
+import { plaidItems } from "@/db/schema";
+import { eq, desc, gte, lte, and, sql } from "drizzle-orm";
 import type { Account, Transaction, Category, CategorySpend, MonthSummary, CategoryRule } from "./types";
 
-export async function getAccounts(supabase: SupabaseClient): Promise<Account[]> {
-  const { data, error } = await supabase
-    .from("accounts")
-    .select("id, name, official_name, type, subtype, current_balance, available_balance, plaid_items(institution_name, last_synced_at)")
-    .order("type")
-    .order("name");
+export async function getAccounts(): Promise<Account[]> {
+  const rows = await db
+    .select({
+      id: accounts.id,
+      name: accounts.name,
+      officialName: accounts.officialName,
+      type: accounts.type,
+      subtype: accounts.subtype,
+      currentBalance: accounts.currentBalance,
+      availableBalance: accounts.availableBalance,
+      institutionName: plaidItems.institutionName,
+      lastSyncedAt: plaidItems.lastSyncedAt,
+    })
+    .from(accounts)
+    .leftJoin(plaidItems, eq(accounts.plaidItemId, plaidItems.id))
+    .orderBy(accounts.type, accounts.name);
 
-  if (error || !data) return [];
-
-  return data.map((row: Record<string, unknown>) => ({
-    id: row.id as string,
-    name: row.name as string,
-    official_name: row.official_name as string | null,
-    type: row.type as string,
-    subtype: row.subtype as string | null,
-    current_balance: row.current_balance as number | null,
-    available_balance: row.available_balance as number | null,
-    institution_name:
-      (row.plaid_items as { institution_name: string; last_synced_at: string | null } | null)?.institution_name ?? "Unknown",
-    last_synced_at:
-      (row.plaid_items as { institution_name: string; last_synced_at: string | null } | null)?.last_synced_at ?? null,
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    official_name: r.officialName,
+    type: r.type,
+    subtype: r.subtype,
+    current_balance: r.currentBalance ? Number(r.currentBalance) : null,
+    available_balance: r.availableBalance ? Number(r.availableBalance) : null,
+    institution_name: r.institutionName ?? "Unknown",
+    last_synced_at: r.lastSyncedAt?.toISOString() ?? null,
   }));
 }
 
-export async function getRecentTransactions(
-  supabase: SupabaseClient,
-  limit = 15,
-): Promise<Transaction[]> {
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("id, date, amount, merchant_name, transaction_type, is_reviewed, categories(name, icon)")
-    .order("date", { ascending: false })
-    .order("created_at", { ascending: false })
+export async function getRecentTransactions(limit = 15): Promise<Transaction[]> {
+  const rows = await db
+    .select({
+      id: transactions.id,
+      date: transactions.date,
+      amount: transactions.amount,
+      merchantName: transactions.merchantName,
+      transactionType: transactions.transactionType,
+      isReviewed: transactions.isReviewed,
+      categoryName: categories.name,
+      categoryIcon: categories.icon,
+    })
+    .from(transactions)
+    .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
+    .orderBy(desc(transactions.date), desc(transactions.createdAt))
     .limit(limit);
 
-  if (error || !data) return [];
-
-  return data.map((row: Record<string, unknown>) => {
-    const cat = row.categories as { name: string; icon: string | null } | null;
-    return {
-      id: row.id as string,
-      date: row.date as string,
-      amount: row.amount as number,
-      merchant_name: row.merchant_name as string | null,
-      transaction_type: row.transaction_type as Transaction["transaction_type"],
-      is_reviewed: row.is_reviewed as boolean,
-      category_name: cat?.name ?? null,
-      category_icon: cat?.icon ?? null,
-    };
-  });
+  return rows.map((r) => ({
+    id: r.id,
+    date: r.date,
+    amount: Number(r.amount),
+    merchant_name: r.merchantName,
+    transaction_type: r.transactionType as Transaction["transaction_type"],
+    is_reviewed: r.isReviewed ?? false,
+    category_name: r.categoryName ?? null,
+    category_icon: r.categoryIcon ?? null,
+  }));
 }
 
-export async function getCategories(supabase: SupabaseClient): Promise<Category[]> {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, name, monthly_budget, type, icon, sort_order")
-    .eq("is_active", true)
-    .order("sort_order");
+export async function getCategories(): Promise<Category[]> {
+  const rows = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.isActive, true))
+    .orderBy(categories.sortOrder);
 
-  if (error || !data) return [];
-  return data as Category[];
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    monthly_budget: Number(r.monthlyBudget),
+    type: r.type as Category["type"],
+    sort_order: r.sortOrder ?? 0,
+    icon: r.icon,
+    is_active: r.isActive ?? true,
+    is_temporary: r.isTemporary ?? false,
+  }));
 }
 
 interface RawTransaction {
@@ -71,46 +89,51 @@ interface RawTransaction {
 }
 
 export async function getMonthExpenses(
-  supabase: SupabaseClient,
   startDate: string,
   endDate: string,
 ): Promise<RawTransaction[]> {
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("amount, portal_category_id, transaction_type")
-    .gte("date", startDate)
-    .lte("date", endDate);
+  const rows = await db
+    .select({
+      amount: transactions.amount,
+      portalCategoryId: transactions.portalCategoryId,
+      transactionType: transactions.transactionType,
+    })
+    .from(transactions)
+    .where(and(gte(transactions.date, startDate), lte(transactions.date, endDate)));
 
-  if (error || !data) return [];
-  return data as RawTransaction[];
+  return rows.map((r) => ({
+    amount: Number(r.amount),
+    portal_category_id: r.portalCategoryId,
+    transaction_type: r.transactionType ?? "expense",
+  }));
 }
 
 export function buildCategorySpend(
-  categories: Category[],
-  transactions: RawTransaction[],
+  cats: Category[],
+  txns: RawTransaction[],
 ): CategorySpend[] {
   const spendMap = new Map<string, number>();
 
-  for (const txn of transactions) {
+  for (const txn of txns) {
     if (txn.transaction_type !== "expense" || !txn.portal_category_id) continue;
     const current = spendMap.get(txn.portal_category_id) ?? 0;
     spendMap.set(txn.portal_category_id, current + Math.abs(txn.amount));
   }
 
-  return categories.map((cat) => ({
+  return cats.map((cat) => ({
     ...cat,
     total_spent: spendMap.get(cat.id) ?? 0,
   }));
 }
 
 export function buildMonthSummary(
-  categories: Category[],
-  transactions: RawTransaction[],
+  cats: Category[],
+  txns: RawTransaction[],
 ): MonthSummary {
   let totalSpent = 0;
   let totalIncome = 0;
 
-  for (const txn of transactions) {
+  for (const txn of txns) {
     if (txn.transaction_type === "expense") {
       totalSpent += Math.abs(txn.amount);
     } else if (txn.transaction_type === "income") {
@@ -118,7 +141,7 @@ export function buildMonthSummary(
     }
   }
 
-  const totalBudget = categories.reduce((sum, cat) => sum + cat.monthly_budget, 0);
+  const totalBudget = cats.reduce((sum, cat) => sum + cat.monthly_budget, 0);
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const daysElapsed = now.getDate();
@@ -126,43 +149,47 @@ export function buildMonthSummary(
   return { total_spent: totalSpent, total_budget: totalBudget, total_income: totalIncome, days_elapsed: daysElapsed, days_in_month: daysInMonth };
 }
 
-export async function getCategoryRules(
-  supabase: SupabaseClient,
-): Promise<CategoryRule[]> {
-  const { data, error } = await supabase
-    .from("category_rules")
-    .select("id, pattern, category_id, source");
+export async function getCategoryRules(): Promise<CategoryRule[]> {
+  const rows = await db
+    .select({
+      id: categoryRules.id,
+      pattern: categoryRules.pattern,
+      categoryId: categoryRules.categoryId,
+      source: categoryRules.source,
+    })
+    .from(categoryRules);
 
-  if (error || !data) return [];
-  return data as CategoryRule[];
+  return rows.map((r) => ({
+    id: r.id,
+    pattern: r.pattern,
+    category_id: r.categoryId,
+    source: r.source as "user" | "ai",
+  }));
 }
 
 export async function upsertCategoryRule(
-  supabase: SupabaseClient,
   pattern: string,
   categoryId: string,
 ): Promise<void> {
-  await supabase
-    .from("category_rules")
-    .upsert(
-      { pattern: pattern.toLowerCase(), category_id: categoryId, source: "user" },
-      { onConflict: "pattern" },
-    );
+  await db
+    .insert(categoryRules)
+    .values({ pattern: pattern.toLowerCase(), categoryId, source: "user" })
+    .onConflictDoUpdate({
+      target: categoryRules.pattern,
+      set: { categoryId, source: "user" },
+    });
 }
 
-export async function getReviewCount(
-  supabase: SupabaseClient,
-): Promise<number> {
-  const { count } = await supabase
-    .from("transactions")
-    .select("id", { count: "exact", head: true })
-    .eq("is_reviewed", false);
+export async function getReviewCount(): Promise<number> {
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(transactions)
+    .where(eq(transactions.isReviewed, false));
 
-  return count ?? 0;
+  return Number(result[0]?.count ?? 0);
 }
 
 export async function updateTransaction(
-  supabase: SupabaseClient,
   id: string,
   updates: {
     portal_category_id?: string | null;
@@ -171,5 +198,11 @@ export async function updateTransaction(
     is_reviewed?: boolean;
   },
 ): Promise<void> {
-  await supabase.from("transactions").update(updates).eq("id", id);
+  const setValues: Record<string, unknown> = {};
+  if (updates.portal_category_id !== undefined) setValues.portalCategoryId = updates.portal_category_id;
+  if (updates.transaction_type !== undefined) setValues.transactionType = updates.transaction_type;
+  if (updates.notes !== undefined) setValues.notes = updates.notes;
+  if (updates.is_reviewed !== undefined) setValues.isReviewed = updates.is_reviewed;
+
+  await db.update(transactions).set(setValues).where(eq(transactions.id, id));
 }
