@@ -2,8 +2,15 @@ import postgres from "postgres";
 import bcrypt from "bcryptjs";
 
 const DATABASE_URL = process.env.DATABASE_URL;
+const ALEX_PIN = process.env.ALEX_PIN;
+const EMINE_PIN = process.env.EMINE_PIN;
+
 if (!DATABASE_URL) {
   console.error("DATABASE_URL is required");
+  process.exit(1);
+}
+if (!ALEX_PIN || !EMINE_PIN) {
+  console.error("ALEX_PIN and EMINE_PIN environment variables are required");
   process.exit(1);
 }
 
@@ -12,8 +19,8 @@ const sql = postgres(DATABASE_URL);
 async function seed() {
   console.log("Seeding users...");
 
-  const alexHash = bcrypt.hashSync("1152", 10);
-  const emineHash = bcrypt.hashSync("5238", 10);
+  const alexHash = bcrypt.hashSync(ALEX_PIN!, 10);
+  const emineHash = bcrypt.hashSync(EMINE_PIN!, 10);
 
   await sql`
     INSERT INTO users (name, pin_hash, role)

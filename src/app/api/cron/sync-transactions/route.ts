@@ -1,12 +1,16 @@
-// src/app/api/cron/sync-transactions/route.ts
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { db } from "@/db";
 import { plaidItems } from "@/db/schema";
 import { syncPlaidItem } from "@/modules/finance/lib/sync-engine";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const authHeader = request.headers.get("authorization") ?? "";
+  const expected = `Bearer ${process.env.CRON_SECRET}`;
+  const authorized =
+    authHeader.length === expected.length &&
+    timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected));
+  if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

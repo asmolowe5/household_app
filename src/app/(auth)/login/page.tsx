@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Landmark } from "lucide-react";
 
@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleDigit = useCallback((digit: string) => {
+  function handleDigit(digit: string) {
     setError("");
     setPin((prev) => {
       if (prev.length >= 4) return prev;
@@ -20,7 +20,7 @@ export default function LoginPage() {
       }
       return next;
     });
-  }, []);
+  }
 
   async function submitPin(code: string) {
     setLoading(true);

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Daily pg_dump backup with 7-day retention
 # Schedule via Synology DSM Task Scheduler at 3:00 AM
 
