@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/shared/lib/supabase/server";
+import { getCurrentUser } from "@/shared/lib/auth/session";
 import { PortalShell } from "@/shared/components/portal-shell";
 
 export default async function PortalLayout({
@@ -7,8 +7,7 @@ export default async function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
