@@ -1,25 +1,12 @@
 export type TransactionType = "expense" | "income" | "savings_transfer" | "internal_transfer";
 export type CategoryType = "fixed" | "discretionary";
 export type PaceStatus = "green" | "yellow" | "orange" | "red";
-export type AlertTriggerType = "merchant" | "category" | "amount" | "pace" | "savings_withdrawal";
-export type AlertChannel = "sms" | "portal";
-export type AiConversationChannel = "sms" | "portal";
-export type ProfileUpdatedBy = "user" | "ai" | "system";
-
-export interface Profile {
-  id: string;
-  email: string;
-  name: string;
-  phone: string | null;
-  theme_preference: "dark" | "light";
-  created_at: string;
-  updated_at: string;
-}
 
 export interface PlaidItem {
   id: string;
   user_id: string;
-  access_token_vault_id: string | null;
+  access_token: string | null;
+  plaid_item_id: string | null;
   institution_name: string;
   institution_id: string | null;
   module_context: "household" | "llc";
@@ -36,13 +23,11 @@ export interface Account {
   subtype: string | null;
   current_balance: number | null;
   available_balance: number | null;
-  // Database fields (optional for UI queries)
   plaid_item_id?: string;
   plaid_account_id?: string;
   iso_currency_code?: string;
   last_balance_update?: string | null;
   created_at?: string;
-  // Query result fields
   institution_name?: string;
   last_synced_at?: string | null;
 }
@@ -54,7 +39,6 @@ export interface Transaction {
   merchant_name: string | null;
   transaction_type: TransactionType;
   is_reviewed: boolean;
-  // Database fields (optional for UI queries)
   account_id?: string;
   plaid_transaction_id?: string | null;
   plaid_category?: string[] | null;
@@ -63,10 +47,8 @@ export interface Transaction {
   project_id?: string | null;
   notes?: string | null;
   created_at?: string;
-  // Query result fields
   category_name?: string | null;
   category_icon?: string | null;
-  // Related objects
   category?: Category;
   account?: Account;
 }
@@ -78,7 +60,6 @@ export interface Category {
   type: CategoryType;
   sort_order: number;
   icon: string | null;
-  // Database fields (optional for UI queries)
   is_active?: boolean;
   is_temporary?: boolean;
   created_at?: string;
@@ -89,7 +70,6 @@ export interface CategoryRule {
   pattern: string;
   category_id: string;
   source: "user" | "ai";
-  // Database fields (optional for UI queries)
   created_by?: string | null;
   created_at?: string;
 }
@@ -102,60 +82,6 @@ export interface Project {
   created_at: string;
   closed_at: string | null;
   notes: string | null;
-}
-
-export interface FinancialProfile {
-  id: string;
-  content: string;
-  version: number;
-  updated_at: string;
-  updated_by: ProfileUpdatedBy;
-}
-
-export interface AlertRule {
-  id: string;
-  user_id: string;
-  trigger_type: AlertTriggerType;
-  trigger_params: Record<string, unknown>;
-  message_template: string | null;
-  is_active: boolean;
-  created_at: string;
-}
-
-export interface AlertLog {
-  id: string;
-  alert_rule_id: string | null;
-  user_id: string;
-  message_sent: string;
-  sent_at: string;
-  channel: AlertChannel;
-}
-
-export interface CategoryBudgetStatus {
-  category: Category;
-  spent: number;
-  budgeted: number;
-  remaining: number;
-  percentUsed: number;
-  paceRatio: number;
-  status: PaceStatus;
-  projectedMonthEnd: number;
-}
-
-export interface BudgetSummary {
-  totalBudgeted: number;
-  totalSpent: number;
-  totalRemaining: number;
-  overallPaceRatio: number;
-  overallStatus: PaceStatus;
-  dayOfMonth: number;
-  daysInMonth: number;
-  percentOfMonth: number;
-  dailyAllowance: number;
-  categories: CategoryBudgetStatus[];
-  incomeThisMonth: number;
-  savingsThisMonth: number;
-  savingsBalance: number | null;
 }
 
 export interface CategorySpend extends Category {
