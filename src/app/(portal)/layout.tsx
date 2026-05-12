@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/shared/lib/supabase/server";
-import { Sidebar } from "@/shared/components/sidebar";
-import { Header } from "@/shared/components/header";
-import { AiChatPanel } from "@/modules/finance/components/ai-chat-panel";
+import { PortalShell } from "@/shared/components/portal-shell";
 
 export default async function PortalLayout({
   children,
@@ -16,14 +14,5 @@ export default async function PortalLayout({
     redirect("/login");
   }
 
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1" style={{ marginLeft: '220px' }}>
-        <Header />
-        <main className="p-6">{children}</main>
-      </div>
-      <AiChatPanel />
-    </div>
-  );
+  return <PortalShell>{children}</PortalShell>;
 }
