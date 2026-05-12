@@ -1,20 +1,10 @@
 import { createClient } from "@/shared/lib/supabase/server";
-import {
-  getAccounts,
-  getRecentTransactions,
-  getCategories,
-  getMonthExpenses,
-  buildCategorySpend,
-  buildMonthSummary,
-  getReviewCount,
-} from "@/modules/finance/queries";
+import { getAccounts, getReviewCount } from "@/modules/finance/queries";
 import { calculateBudgetSummary } from "@/modules/finance/lib/budget-engine";
 import type {
   Account,
   Transaction,
   Category,
-  CategorySpend,
-  MonthSummary,
   BudgetSummary,
 } from "@/modules/finance/types";
 
@@ -25,7 +15,12 @@ export async function getFinanceAccounts(): Promise<Account[]> {
 
 export async function getFinanceTransactions(limit = 15): Promise<Transaction[]> {
   const supabase = await createClient();
-  return getRecentTransactions(supabase, limit);
+  const { data } = await supabase
+    .from("transactions")
+    .select("*, category:categories(*)")
+    .order("date", { ascending: false })
+    .limit(limit);
+  return (data ?? []) as Transaction[];
 }
 
 export async function getFinanceBudgetSummary(): Promise<BudgetSummary> {
@@ -38,13 +33,22 @@ export async function getFinanceBudgetSummary(): Promise<BudgetSummary> {
     .toISOString()
     .split("T")[0];
 
-  const [categories, transactions, accounts] = await Promise.all([
-    getCategories(supabase),
-    getMonthExpenses(supabase, monthStart, monthEnd),
-    getAccounts(supabase),
+  const [categoriesRes, transactionsRes, accountsRes] = await Promise.all([
+    supabase.from("categories").select("*").eq("is_active", true).order("sort_order"),
+    supabase
+      .from("transactions")
+      .select("*, category:categories(*)")
+      .gte("date", monthStart)
+      .lte("date", monthEnd),
+    supabase.from("accounts").select("*"),
   ]);
 
-  return calculateBudgetSummary(categories, transactions, accounts, now);
+  return calculateBudgetSummary(
+    (categoriesRes.data ?? []) as Category[],
+    (transactionsRes.data ?? []) as Transaction[],
+    (accountsRes.data ?? []) as Account[],
+    now,
+  );
 }
 
 export async function getFinanceReviewCount(): Promise<number> {
