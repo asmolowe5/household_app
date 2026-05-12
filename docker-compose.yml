@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: smolowe-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: portal
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portal"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  portal:
+    build: .
+    container_name: smolowe-portal
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://portal:${DB_PASSWORD}@db:5432/portal
+      IRON_SESSION_SECRET: ${IRON_SESSION_SECRET}
+      PLAID_CLIENT_ID: ${PLAID_CLIENT_ID}
+      PLAID_SECRET: ${PLAID_SECRET}
+      PLAID_ENV: ${PLAID_ENV}
+      CRON_SECRET: ${CRON_SECRET}
+    ports:
+      - "3000:3000"
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: smolowe-tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TOKEN}
+    depends_on:
+      - portal
+
+volumes:
+  pgdata:
