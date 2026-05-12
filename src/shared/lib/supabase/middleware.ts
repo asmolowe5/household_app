@@ -13,7 +13,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({ request });
@@ -41,7 +41,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && request.nextUrl.pathname.startsWith("/login")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/finance";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 

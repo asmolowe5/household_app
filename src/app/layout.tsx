@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Smolowe Portal",
-  description: "Household management portal",
+  description: "Smolowe Household Portal",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

@@ -18,18 +18,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored) {
+    const stored = localStorage.getItem("theme");
+    if (stored === "light" || stored === "dark") {
       setTheme(stored);
       document.documentElement.setAttribute("data-theme", stored);
     }
   }, []);
 
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next = prev === "dark" ? "light" : "dark";
       localStorage.setItem("theme", next);
-      document.documentElement.setAttribute("data-theme", next);
       return next;
     });
   }, []);

@@ -107,7 +107,6 @@
 
 /* Tailwind v4: register CSS variables as design tokens */
 @theme inline {
-  /* Colors */
   --color-bg-primary: var(--bg-primary);
   --color-bg-secondary: var(--bg-secondary);
   --color-bg-tertiary: var(--bg-tertiary);
@@ -117,17 +116,11 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
 
-  --color-border: var(--border-default);
+  --color-border-default: var(--border-default);
   --color-border-subtle: var(--border-subtle);
 
   --color-status-green: var(--status-green);
-  --color-status-green-muted: var(--status-green-muted);
-  --color-status-yellow: var(--status-yellow);
-  --color-status-yellow-muted: var(--status-yellow-muted);
-  --color-status-orange: var(--status-orange);
-  --color-status-orange-muted: var(--status-orange-muted);
   --color-status-red: var(--status-red);
-  --color-status-red-muted: var(--status-red-muted);
 
   --color-accent: var(--accent);
   --color-accent-muted: var(--accent-muted);
@@ -162,25 +155,33 @@
   --spacing-tab-bar: var(--tab-bar-height);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-html {
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  body {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
 
-body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-/* Tabular numerals for financial figures */
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  ::selection {
+    background: rgba(129, 140, 248, 0.25);
+    color: var(--text-primary);
+  }
 }

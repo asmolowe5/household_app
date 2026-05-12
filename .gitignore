@@ -1,6 +1,10 @@
 # Superpowers
 .superpowers/
 
+# Claude Code worktrees
+.claude/worktrees/
+.claude/launch.json
+
 # Dependencies
 node_modules/
 
