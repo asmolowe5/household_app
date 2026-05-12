@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "@google/genai": "^2.1.0",
-    "@supabase/ssr": "^0.10.0",
-    "@supabase/supabase-js": "^2.101.1",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
