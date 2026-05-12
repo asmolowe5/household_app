@@ -1,13 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "@/shared/providers/theme-provider";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Smolowe Portal",
@@ -33,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans`}>
+      <body className={`${GeistSans.variable} font-sans`}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
