@@ -64,6 +64,12 @@
   --duration-slow: 300ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
+  /* Layout dimensions */
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 64px;
+  --header-height: 56px;
+  --tab-bar-height: 56px;
+
   /* Font stacks (referenced by layout.tsx) */
   --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
   --font-mono: var(--font-geist-mono, ui-monospace, monospace);
@@ -148,6 +154,12 @@
   /* Font families */
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+
+  /* Layout */
+  --spacing-sidebar: var(--sidebar-width);
+  --spacing-sidebar-collapsed: var(--sidebar-collapsed-width);
+  --spacing-header: var(--header-height);
+  --spacing-tab-bar: var(--tab-bar-height);
 }
 
 * {
