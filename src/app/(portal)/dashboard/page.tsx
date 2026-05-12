@@ -3,18 +3,18 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="rounded-2xl border border-border-default bg-bg-secondary p-6 sm:p-8">
         <h2 className="text-base font-semibold tracking-tight text-text-primary">
-          Portal is ready
+          Welcome home
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-          Authentication, theming, and Supabase are wired up. This is your
-          starting point — add modules and pages from here.
+          Your household portal is running on the NAS. Add modules and
+          pages from here.
         </p>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-3">
-        <StatusCard label="Auth" value="Connected" status="green" />
-        <StatusCard label="Database" value="Supabase" status="green" />
-        <StatusCard label="Theme" value="Dark / Light" status="green" />
+        <StatusCard label="Auth" value="PIN Login" status="green" />
+        <StatusCard label="Database" value="PostgreSQL" status="green" />
+        <StatusCard label="Hosting" value="Self-hosted" status="green" />
       </div>
     </div>
   );
