@@ -24,8 +24,24 @@ async function seed() {
 
   await sql`
     INSERT INTO users (name, pin_hash, role)
-    VALUES ('Alex', ${alexHash}, 'admin'), ('Emine', ${emineHash}, 'admin')
-    ON CONFLICT DO NOTHING
+    SELECT 'Alex', ${alexHash}, 'admin'
+    WHERE NOT EXISTS (SELECT 1 FROM users WHERE name = 'Alex')
+  `;
+
+  await sql`
+    INSERT INTO users (name, pin_hash, role)
+    SELECT 'Emine', ${emineHash}, 'admin'
+    WHERE NOT EXISTS (SELECT 1 FROM users WHERE name = 'Emine')
+  `;
+
+  await sql`
+    UPDATE users
+    SET pin_hash = CASE
+      WHEN name = 'Alex' THEN ${alexHash}
+      WHEN name = 'Emine' THEN ${emineHash}
+      ELSE pin_hash
+    END
+    WHERE name IN ('Alex', 'Emine')
   `;
 
   console.log("Seeding categories...");

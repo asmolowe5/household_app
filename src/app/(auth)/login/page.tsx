@@ -2,20 +2,24 @@
 
 import { useEffect, useState } from "react";
 
+const PIN_LENGTH = 8;
+
 export default function LoginPage() {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (pin.length === 4 && !loading) {
+    if (pin.length === PIN_LENGTH && !loading) {
       void submitPin(pin);
     }
   }, [pin, loading]);
 
   function handleDigit(digit: string) {
     setError("");
-    setPin((current) => (current.length >= 4 ? current : current + digit));
+    setPin((current) =>
+      current.length >= PIN_LENGTH ? current : current + digit,
+    );
   }
 
   function handleBackspace() {
@@ -38,7 +42,11 @@ export default function LoginPage() {
         return;
       }
 
-      setError(response.status === 401 ? "Incorrect PIN" : "Login failed");
+      if (response.status === 429) {
+        setError("Too many attempts. Try again in 10 minutes.");
+      } else {
+        setError(response.status === 401 ? "Incorrect PIN" : "Login failed");
+      }
     } catch {
       setError("Login failed");
     } finally {
@@ -59,7 +67,7 @@ export default function LoginPage() {
       </div>
 
       <div className="mb-6 flex justify-center gap-3">
-        {[0, 1, 2, 3].map((index) => (
+        {Array.from({ length: PIN_LENGTH }, (_, index) => (
           <div
             key={index}
             className={`h-3 w-3 rounded-full transition-colors ${
@@ -81,7 +89,7 @@ export default function LoginPage() {
             <button
               key={digit}
               onClick={() => handleDigit(digit)}
-              disabled={loading || pin.length >= 4}
+              disabled={loading || pin.length >= PIN_LENGTH}
               className="flex h-14 items-center justify-center rounded-xl text-lg font-medium text-text-primary transition-colors hover:bg-bg-tertiary active:bg-bg-elevated disabled:opacity-30"
             >
               {digit}

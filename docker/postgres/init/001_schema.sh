@@ -15,6 +15,15 @@ CREATE TABLE IF NOT EXISTS users (
   created_at timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS login_attempts (
+  ip_address text PRIMARY KEY,
+  attempts integer NOT NULL DEFAULT 0,
+  locked_until timestamptz,
+  last_failed_at timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS plaid_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
