@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
@@ -19,7 +21,11 @@ export default function DashboardPage() {
         <h2 className="text-sm font-semibold">Next modules</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <ModuleCard title="Finances" description="Local budgets and Plaid sync." />
-          <ModuleCard title="Cameras" description="NAS-hosted camera feeds." />
+          <ModuleCard
+            title="Cameras"
+            description="Live webcam viewer."
+            href="/cameras"
+          />
           <ModuleCard title="Home" description="Smart-home controls and status." />
         </div>
       </section>
@@ -56,16 +62,35 @@ function StatusCard({
 function ModuleCard({
   title,
   description,
+  href,
 }: {
   title: string;
   description: string;
+  href?: string;
 }) {
-  return (
-    <div className="rounded-md border border-border-subtle bg-bg-primary p-4">
+  const content = (
+    <>
       <p className="text-sm font-medium">{title}</p>
       <p className="mt-1 text-xs leading-relaxed text-text-tertiary">
         {description}
       </p>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="block rounded-md border border-border-subtle bg-bg-primary p-4 transition-colors hover:bg-bg-secondary"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="rounded-md border border-border-subtle bg-bg-primary p-4">
+      {content}
     </div>
   );
 }

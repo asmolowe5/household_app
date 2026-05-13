@@ -25,8 +25,8 @@ export const modules: ModuleDefinition[] = [
     name: "Cameras",
     icon: Camera,
     basePath: "/cameras",
-    status: "coming-soon",
-    description: "Security camera feeds and recordings",
+    status: "active",
+    description: "Live webcam viewer",
   },
 ];
 
