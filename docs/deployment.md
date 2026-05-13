@@ -43,6 +43,8 @@ PLAID_SECRET=...
 PLAID_ENV=sandbox
 CRON_SECRET=...
 CLOUDFLARE_TOKEN=...
+MEDIAMTX_CONTAINER_NAME=household-mediamtx
+MEDIAMTX_PUBLISH_SECRET=...
 ```
 
 Do not commit the real `.env`.
@@ -105,6 +107,7 @@ sudo docker-compose ps
 sudo docker-compose logs --tail=100 portal
 sudo docker-compose logs --tail=100 db
 sudo docker-compose logs --tail=100 tunnel
+sudo docker-compose logs --tail=100 mediamtx
 ```
 
 ## PIN Rotation
@@ -165,3 +168,21 @@ http://portal:3000
 
 Cloudflare Access can be added later in front of the app. Keep the app PIN login
 even after Access is enabled.
+
+## Camera Streaming
+
+The portal's camera streaming pipeline depends on the `mediamtx` container.
+See `docs/streaming.md` for the end-to-end runbook (Windows-side setup,
+starting streams, troubleshooting).
+
+To verify MediaMTX is up:
+
+```sh
+sudo docker-compose ps mediamtx
+sudo docker-compose logs --tail=20 mediamtx
+```
+
+MediaMTX listens for RTSP publishes on `:8554` (LAN-only) and serves HLS on
+`:8888` (Docker-network-only — never exposed to the host or to Cloudflare).
+The portal proxies HLS through `/api/streams/<name>/...` and applies session
+auth.
