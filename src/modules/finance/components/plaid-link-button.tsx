@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
@@ -60,9 +60,11 @@ export function PlaidLinkButton({ variant = "primary" }: PlaidLinkButtonProps) {
     onSuccess,
   });
 
-  if (linkToken && ready) {
-    setTimeout(() => open(), 0);
-  }
+  useEffect(() => {
+    if (linkToken && ready) {
+      open();
+    }
+  }, [linkToken, open, ready]);
 
   if (variant === "secondary") {
     return (

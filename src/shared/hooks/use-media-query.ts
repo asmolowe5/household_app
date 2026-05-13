@@ -1,23 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 export function useMediaQuery(query: string, defaultValue = false): boolean {
-  const [matches, setMatches] = useState(defaultValue);
-
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    setMatches(media.matches);
-
-    function handleChange(e: MediaQueryListEvent) {
-      setMatches(e.matches);
-    }
-
-    media.addEventListener("change", handleChange);
-    return () => media.removeEventListener("change", handleChange);
-  }, [query]);
-
-  return matches;
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      const media = window.matchMedia(query);
+      media.addEventListener("change", onStoreChange);
+      return () => media.removeEventListener("change", onStoreChange);
+    },
+    () => window.matchMedia(query).matches,
+    () => defaultValue,
+  );
 }
 
 export function useIsMobile(): boolean {

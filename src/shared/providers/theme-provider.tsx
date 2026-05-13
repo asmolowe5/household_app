@@ -20,33 +20,34 @@ export const ThemeContext = createContext<ThemeContextValue>({
   toggleTheme: () => {},
 });
 
+function getStoredTheme(): Theme {
+  if (typeof window === "undefined") {
+    return "dark";
+  }
+
+  try {
+    const stored = localStorage.getItem("theme");
+    return stored === "light" || stored === "dark" ? stored : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>(getStoredTheme);
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("theme");
-      if (stored === "light" || stored === "dark") {
-        setTheme(stored);
-      }
+      localStorage.setItem("theme", theme);
     } catch {
-      // Keep the default theme if storage is blocked.
+      // The visual theme can still update even when storage is blocked.
     }
-  }, []);
-
-  useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
     setTheme((current) => {
-      const next = current === "dark" ? "light" : "dark";
-      try {
-        localStorage.setItem("theme", next);
-      } catch {
-        // The visual theme can still update even when storage is blocked.
-      }
-      return next;
+      return current === "dark" ? "light" : "dark";
     });
   }, []);
 

@@ -1,5 +1,6 @@
 # App Icons
 
-Replace these placeholder files with actual app icons:
-- icon-192.png (192x192 PNG)
-- icon-512.png (512x512 PNG)
+`icon.svg` is the generic checked-in app icon used by the web manifest.
+
+If a branded icon is added later, keep it generic enough for the public repo or
+store private branded assets outside Git.

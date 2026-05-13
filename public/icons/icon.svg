@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Household Portal">
+  <rect width="512" height="512" rx="104" fill="#0a0a0b"/>
+  <path d="M128 247.6 256 144l128 103.6v144.8a16 16 0 0 1-16 16h-72v-112h-80v112h-72a16 16 0 0 1-16-16V247.6Z" fill="#f5f5f0"/>
+  <path d="M96 260 256 130l160 130" fill="none" stroke="#8fd3ff" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="360" cy="152" r="28" fill="#a7f3d0"/>
+</svg>
