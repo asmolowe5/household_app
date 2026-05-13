@@ -7,13 +7,17 @@ RUN npm ci --ignore-scripts
 
 FROM base AS builder
 WORKDIR /app
+ARG GIT_SHA=unknown
+ENV NEXT_PUBLIC_APP_VERSION=$GIT_SHA
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx next build
 
 FROM base AS runner
 WORKDIR /app
+ARG GIT_SHA=unknown
 ENV NODE_ENV=production
+ENV APP_VERSION=$GIT_SHA
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
