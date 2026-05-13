@@ -35,6 +35,17 @@ services:
     ports:
       - "3000:3000"
 
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: ${MEDIAMTX_CONTAINER_NAME:?Set MEDIAMTX_CONTAINER_NAME in .env}
+    restart: unless-stopped
+    environment:
+      MEDIAMTX_PUBLISH_SECRET: ${MEDIAMTX_PUBLISH_SECRET:?Set MEDIAMTX_PUBLISH_SECRET in .env}
+    volumes:
+      - ./docker/mediamtx/mediamtx.yml:/mediamtx.yml:ro
+    ports:
+      - "8554:8554"
+
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: ${TUNNEL_CONTAINER_NAME:?Set TUNNEL_CONTAINER_NAME in .env}

@@ -1,0 +1,37 @@
+# MediaMTX configuration for the household portal Phase 1 streaming pipeline.
+# See https://github.com/bluenviron/mediamtx for full options.
+
+logLevel: info
+
+# RTSP server (LAN-only, port mapped to host so ffmpeg on Windows can publish).
+rtspAddress: :8554
+rtspTransports: [tcp]
+
+# HLS server (Docker-network-internal, NOT mapped to host).
+# Only the portal container reaches this via Docker DNS at http://mediamtx:8888.
+hlsAddress: :8888
+hlsAlwaysRemux: yes
+hlsAllowOrigin: '*'
+
+# Authentication.
+authMethod: internal
+authInternalUsers:
+  # Publisher: must use this user + the shared secret to push RTSP.
+  - user: publisher
+    pass: ${MEDIAMTX_PUBLISH_SECRET}
+    ips: []
+    permissions:
+      - action: publish
+        path:
+  # Reader: anonymous reads are allowed because the HLS port is Docker-internal
+  # only. The portal's auth-gated proxy is the real reader-side security boundary.
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: read
+        path:
+
+# Accept any stream name. The proxy validates names with a regex on the way in.
+paths:
+  all_others:
