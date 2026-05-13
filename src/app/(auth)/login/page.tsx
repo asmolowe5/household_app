@@ -1,40 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Landmark } from "lucide-react";
 
 export default function LoginPage() {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+
+  useEffect(() => {
+    if (pin.length === 4 && !loading) {
+      void submitPin(pin);
+    }
+  }, [pin, loading]);
 
   function handleDigit(digit: string) {
     setError("");
-    setPin((prev) => {
-      if (prev.length >= 4) return prev;
-      const next = prev + digit;
-      if (next.length === 4) {
-        submitPin(next);
-      }
-      return next;
-    });
+    setPin((prev) => (prev.length >= 4 ? prev : prev + digit));
   }
 
   async function submitPin(code: string) {
     setLoading(true);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin: code }),
-    });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: code }),
+      });
 
-    if (res.ok) {
-      router.push("/dashboard");
-      router.refresh();
-    } else {
-      setError("Incorrect PIN");
+      if (res.ok) {
+        window.location.assign("/dashboard");
+        return;
+      }
+
+      setError(res.status === 401 ? "Incorrect PIN" : "Login failed");
+    } catch {
+      setError("Login failed");
+    } finally {
       setPin("");
       setLoading(false);
     }

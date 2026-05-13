@@ -6,9 +6,12 @@ services:
     environment:
       POSTGRES_DB: portal
       POSTGRES_USER: portal
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      ALEX_PIN: ${ALEX_PIN:?Set ALEX_PIN in .env}
+      EMINE_PIN: ${EMINE_PIN:?Set EMINE_PIN in .env}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U portal"]
       interval: 5s
@@ -23,12 +26,12 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://portal:${DB_PASSWORD}@db:5432/portal
-      IRON_SESSION_SECRET: ${IRON_SESSION_SECRET}
-      PLAID_CLIENT_ID: ${PLAID_CLIENT_ID}
-      PLAID_SECRET: ${PLAID_SECRET}
-      PLAID_ENV: ${PLAID_ENV}
-      CRON_SECRET: ${CRON_SECRET}
+      DATABASE_URL: postgresql://portal:${DB_PASSWORD:?Set DB_PASSWORD in .env}@db:5432/portal
+      IRON_SESSION_SECRET: ${IRON_SESSION_SECRET:?Set IRON_SESSION_SECRET in .env}
+      PLAID_CLIENT_ID: ${PLAID_CLIENT_ID:-}
+      PLAID_SECRET: ${PLAID_SECRET:-}
+      PLAID_ENV: ${PLAID_ENV:-sandbox}
+      CRON_SECRET: ${CRON_SECRET:?Set CRON_SECRET in .env}
     ports:
       - "3000:3000"
 
@@ -38,7 +41,7 @@ services:
     restart: unless-stopped
     command: tunnel run
     environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TOKEN}
+      TUNNEL_TOKEN: ${CLOUDFLARE_TOKEN:?Set CLOUDFLARE_TOKEN in .env}
     depends_on:
       - portal
 
