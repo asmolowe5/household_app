@@ -24,6 +24,11 @@ export default async function PortalLayout({
             </p>
             <p className="text-xs text-text-tertiary">Signed in as {user.name}</p>
           </div>
+          <form action="/api/auth/logout" method="post">
+            <button className="rounded-md border border-border-default px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-tertiary hover:text-text-primary">
+              Sign out
+            </button>
+          </form>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-5 py-6">{children}</main>

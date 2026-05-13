@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/shared/lib/auth/session";
 
-export async function POST() {
+export async function POST(request: Request) {
   const session = await getSession();
   session.destroy();
-  return NextResponse.json({ success: true });
+
+  return NextResponse.redirect(new URL("/login", request.url), {
+    status: 303,
+  });
 }
