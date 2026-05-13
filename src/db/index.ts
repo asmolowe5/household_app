@@ -4,6 +4,9 @@ import * as schema from "./schema";
 
 const connectionString = process.env.DATABASE_URL!;
 
-const client = postgres(connectionString, { max: 10 });
+const client = postgres(connectionString, {
+  max: 10,
+  connect_timeout: 5,
+});
 
 export const db = drizzle(client, { schema });

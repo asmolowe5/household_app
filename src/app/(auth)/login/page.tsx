@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Landmark } from "lucide-react";
 
 export default function LoginPage() {
   const [pin, setPin] = useState("");
@@ -16,24 +15,30 @@ export default function LoginPage() {
 
   function handleDigit(digit: string) {
     setError("");
-    setPin((prev) => (prev.length >= 4 ? prev : prev + digit));
+    setPin((current) => (current.length >= 4 ? current : current + digit));
+  }
+
+  function handleBackspace() {
+    setError("");
+    setPin((current) => current.slice(0, -1));
   }
 
   async function submitPin(code: string) {
     setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin: code }),
       });
 
-      if (res.ok) {
-        window.location.assign("/dashboard");
+      if (response.ok) {
+        window.location.href = "/dashboard";
         return;
       }
 
-      setError(res.status === 401 ? "Incorrect PIN" : "Login failed");
+      setError(response.status === 401 ? "Incorrect PIN" : "Login failed");
     } catch {
       setError("Login failed");
     } finally {
@@ -42,31 +47,23 @@ export default function LoginPage() {
     }
   }
 
-  const handleBackspace = () => {
-    setError("");
-    setPin((prev) => prev.slice(0, -1));
-  };
-
-  const digits = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "←"];
+  const digits = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0"];
 
   return (
-    <div className="w-full max-w-xs px-6">
-      <div className="mb-10 flex flex-col items-center">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-muted">
-          <Landmark size={20} className="text-accent" strokeWidth={2.4} />
-        </div>
+    <main className="w-full max-w-xs rounded-lg border border-border-default bg-bg-secondary px-6 py-8 shadow-lg">
+      <div className="mb-8 text-center">
         <h1 className="text-lg font-semibold tracking-tight text-text-primary">
           Smolowe Portal
         </h1>
         <p className="mt-1 text-sm text-text-tertiary">Enter your PIN</p>
       </div>
 
-      <div className="mb-8 flex justify-center gap-3">
-        {[0, 1, 2, 3].map((i) => (
+      <div className="mb-6 flex justify-center gap-3">
+        {[0, 1, 2, 3].map((index) => (
           <div
-            key={i}
+            key={index}
             className={`h-3 w-3 rounded-full transition-colors ${
-              i < pin.length ? "bg-accent" : "bg-bg-tertiary"
+              index < pin.length ? "bg-accent" : "bg-bg-tertiary"
             }`}
           />
         ))}
@@ -77,32 +74,29 @@ export default function LoginPage() {
       )}
 
       <div className="grid grid-cols-3 gap-3">
-        {digits.map((d, i) => {
-          if (d === "") return <div key={i} />;
-          if (d === "←") {
-            return (
-              <button
-                key={i}
-                onClick={handleBackspace}
-                disabled={loading || pin.length === 0}
-                className="flex h-14 items-center justify-center rounded-xl text-lg text-text-secondary transition-colors hover:bg-bg-tertiary disabled:opacity-30"
-              >
-                ←
-              </button>
-            );
-          }
+        {digits.map((digit, index) => {
+          if (digit === "") return <div key={index} />;
+
           return (
             <button
-              key={i}
-              onClick={() => handleDigit(d)}
+              key={digit}
+              onClick={() => handleDigit(digit)}
               disabled={loading || pin.length >= 4}
               className="flex h-14 items-center justify-center rounded-xl text-lg font-medium text-text-primary transition-colors hover:bg-bg-tertiary active:bg-bg-elevated disabled:opacity-30"
             >
-              {d}
+              {digit}
             </button>
           );
         })}
+
+        <button
+          onClick={handleBackspace}
+          disabled={loading || pin.length === 0}
+          className="col-start-3 flex h-14 items-center justify-center rounded-xl text-sm font-medium text-text-secondary transition-colors hover:bg-bg-tertiary disabled:opacity-30"
+        >
+          Back
+        </button>
       </div>
-    </div>
+    </main>
   );
 }

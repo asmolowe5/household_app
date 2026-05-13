@@ -24,7 +24,12 @@ export async function getSession() {
 }
 
 export async function getCurrentUser() {
-  const session = await getSession();
-  if (!session.isLoggedIn) return null;
-  return { id: session.userId, name: session.userName };
+  try {
+    const session = await getSession();
+    if (!session.isLoggedIn) return null;
+    return { id: session.userId, name: session.userName };
+  } catch (error) {
+    console.warn("Invalid portal session", error);
+    return null;
+  }
 }
