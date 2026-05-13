@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
+export function useMediaQuery(query: string, defaultValue = false): boolean {
+  const [matches, setMatches] = useState(defaultValue);
 
   useEffect(() => {
     const media = window.matchMedia(query);
@@ -21,9 +21,12 @@ export function useMediaQuery(query: string): boolean {
 }
 
 export function useIsMobile(): boolean {
-  return !useMediaQuery("(min-width: 768px)");
+  return !useMediaQuery("(min-width: 768px)", true);
 }
 
 export function useIsCompactDesktop(): boolean {
-  return !useMediaQuery("(min-width: 900px)") && useMediaQuery("(min-width: 768px)");
+  const isBelowWide = !useMediaQuery("(min-width: 900px)", false);
+  const isAtLeastTablet = useMediaQuery("(min-width: 768px)", false);
+
+  return isBelowWide && isAtLeastTablet;
 }

@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 type Theme = "dark" | "light";
 
@@ -11,16 +17,42 @@ interface ThemeContextValue {
 
 export const ThemeContext = createContext<ThemeContextValue>({
   theme: "dark",
-  toggleTheme: () => {
-    const next =
-      document.documentElement.getAttribute("data-theme") === "dark"
-        ? "light"
-        : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("theme", next);
-  },
+  toggleTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("theme");
+      if (stored === "light" || stored === "dark") {
+        setTheme(stored);
+      }
+    } catch {
+      // Keep the default theme if storage is blocked.
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((current) => {
+      const next = current === "dark" ? "light" : "dark";
+      try {
+        localStorage.setItem("theme", next);
+      } catch {
+        // The visual theme can still update even when storage is blocked.
+      }
+      return next;
+    });
+  }, []);
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
