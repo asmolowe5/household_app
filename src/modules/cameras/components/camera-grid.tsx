@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { CameraTile } from "./camera-tile";
+import { HlsCameraTile } from "./hls-camera-tile";
 import { AddCameraPlaceholder } from "./add-camera-placeholder";
 
 export function CameraGrid() {
@@ -20,7 +20,7 @@ export function CameraGrid() {
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <CameraTile label="Webcam" />
+        <HlsCameraTile name="webcam" label="Webcam" />
         <AddCameraPlaceholder />
         <AddCameraPlaceholder />
         <AddCameraPlaceholder />
