@@ -24,7 +24,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       <div className={cn("flex items-center", isCollapsed ? "justify-center p-4" : "justify-between p-6")}>
         {!isCollapsed && (
           <h1 className="text-base font-semibold text-text-primary tracking-tight">
-            Smolowe Portal
+            Household Portal
           </h1>
         )}
         <button

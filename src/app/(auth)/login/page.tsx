@@ -61,7 +61,7 @@ export default function LoginPage() {
     <main className="w-full max-w-xs rounded-lg border border-border-default bg-bg-secondary px-6 py-8 shadow-lg">
       <div className="mb-8 text-center">
         <h1 className="text-lg font-semibold tracking-tight text-text-primary">
-          Smolowe Portal
+          Household Portal
         </h1>
         <p className="mt-1 text-sm text-text-tertiary">Enter your PIN</p>
       </div>

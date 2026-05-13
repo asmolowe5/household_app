@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Smolowe Household Portal",
+    name: "Household Portal",
     short_name: "Portal",
-    description: "Smolowe household management",
+    description: "Private household management",
     start_url: "/dashboard",
     scope: "/",
     display: "standalone",

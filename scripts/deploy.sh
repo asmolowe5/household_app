@@ -9,18 +9,29 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-ALEX_PIN_VALUE="$(grep '^ALEX_PIN=' .env 2>/dev/null | tail -n 1 | cut -d= -f2- | tr -d '\r')"
-EMINE_PIN_VALUE="$(grep '^EMINE_PIN=' .env 2>/dev/null | tail -n 1 | cut -d= -f2- | tr -d '\r')"
+read_env_value() {
+  grep "^$1=" .env 2>/dev/null | tail -n 1 | cut -d= -f2- | tr -d '\r'
+}
 
-case "$ALEX_PIN_VALUE:$EMINE_PIN_VALUE" in
+for required_key in PORTAL_IMAGE DB_CONTAINER_NAME PORTAL_CONTAINER_NAME TUNNEL_CONTAINER_NAME PRIMARY_USER_PIN SECONDARY_USER_PIN; do
+  if [ -z "$(read_env_value "$required_key")" ]; then
+    echo "$required_key must be set in .env before deploying." >&2
+    exit 1
+  fi
+done
+
+PRIMARY_USER_PIN_VALUE="$(read_env_value PRIMARY_USER_PIN)"
+SECONDARY_USER_PIN_VALUE="$(read_env_value SECONDARY_USER_PIN)"
+
+case "$PRIMARY_USER_PIN_VALUE:$SECONDARY_USER_PIN_VALUE" in
   *[!0-9:]*)
-    echo "ALEX_PIN and EMINE_PIN must both be numeric in .env before deploying." >&2
+    echo "PRIMARY_USER_PIN and SECONDARY_USER_PIN must both be numeric in .env before deploying." >&2
     exit 1
     ;;
 esac
 
-if [ "${#ALEX_PIN_VALUE}" -ne 8 ] || [ "${#EMINE_PIN_VALUE}" -ne 8 ]; then
-  echo "ALEX_PIN and EMINE_PIN must both be 8 digits in .env before deploying." >&2
+if [ "${#PRIMARY_USER_PIN_VALUE}" -ne 8 ] || [ "${#SECONDARY_USER_PIN_VALUE}" -ne 8 ]; then
+  echo "PRIMARY_USER_PIN and SECONDARY_USER_PIN must both be 8 digits in .env before deploying." >&2
   exit 1
 fi
 
@@ -55,7 +66,7 @@ if [ -d docker/postgres/migrations ]; then
         ;;
       *.sh)
         echo "Applying $migration"
-        $SUDO $COMPOSE exec -T -e ALEX_PIN="$ALEX_PIN_VALUE" -e EMINE_PIN="$EMINE_PIN_VALUE" db sh < "$migration"
+        $SUDO $COMPOSE exec -T -e PRIMARY_USER_PIN="$PRIMARY_USER_PIN_VALUE" -e SECONDARY_USER_PIN="$SECONDARY_USER_PIN_VALUE" db sh < "$migration"
         ;;
     esac
   done

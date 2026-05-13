@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 
-: "${ALEX_PIN:?ALEX_PIN is required to seed the portal database}"
-: "${EMINE_PIN:?EMINE_PIN is required to seed the portal database}"
+: "${PRIMARY_USER_PIN:?PRIMARY_USER_PIN is required to seed the portal database}"
+: "${SECONDARY_USER_PIN:?SECONDARY_USER_PIN is required to seed the portal database}"
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<SQL
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -96,12 +96,12 @@ CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(portal_cate
 CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(transaction_type);
 
 INSERT INTO users (name, pin_hash, role)
-SELECT 'Alex', crypt('${ALEX_PIN}', gen_salt('bf')), 'admin'
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE name = 'Alex');
+SELECT 'Primary User', crypt('${PRIMARY_USER_PIN}', gen_salt('bf')), 'admin'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE name = 'Primary User');
 
 INSERT INTO users (name, pin_hash, role)
-SELECT 'Emine', crypt('${EMINE_PIN}', gen_salt('bf')), 'admin'
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE name = 'Emine');
+SELECT 'Secondary User', crypt('${SECONDARY_USER_PIN}', gen_salt('bf')), 'admin'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE name = 'Secondary User');
 
 INSERT INTO categories (name, type, sort_order, icon)
 SELECT *

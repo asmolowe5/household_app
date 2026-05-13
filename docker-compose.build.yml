@@ -4,4 +4,4 @@ services:
       context: .
       args:
         GIT_SHA: local
-    image: ghcr.io/asmolowe5/household_app:local
+    image: ${PORTAL_IMAGE_LOCAL:-household-portal:local}

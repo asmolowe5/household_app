@@ -12,7 +12,7 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      app: "smolowe-household-portal",
+      app: "household-portal",
       version: process.env.APP_VERSION ?? "unknown",
       database: "ok",
       timestamp: new Date().toISOString(),
@@ -24,7 +24,7 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: false,
-        app: "smolowe-household-portal",
+        app: "household-portal",
         version: process.env.APP_VERSION ?? "unknown",
         database: "error",
         timestamp: new Date().toISOString(),

@@ -3,8 +3,8 @@ import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Smolowe Portal",
-  description: "Smolowe Household Portal",
+  title: "Household Portal",
+  description: "Private household management portal",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

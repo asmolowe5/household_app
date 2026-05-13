@@ -1,1 +1,1 @@
-export const APP_NAME = "Smolowe Portal";
+export const APP_NAME = "Household Portal";

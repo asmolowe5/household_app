@@ -20,7 +20,7 @@ export default async function PortalLayout({
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div>
             <p className="text-sm font-semibold tracking-tight">
-              Smolowe Portal
+              Household Portal
             </p>
             <p className="text-xs text-text-tertiary">Signed in as {user.name}</p>
           </div>

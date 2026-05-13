@@ -4,7 +4,7 @@ set -euo pipefail
 # Schedule via Synology DSM Task Scheduler at 3:00 AM
 
 BACKUP_DIR="/volume1/backups/portal"
-CONTAINER="smolowe-db"
+CONTAINER="${DB_CONTAINER_NAME:-household-db}"
 DB_USER="portal"
 DB_NAME="portal"
 RETENTION_DAYS=7

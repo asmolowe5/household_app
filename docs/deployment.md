@@ -6,7 +6,7 @@ Next.js app for normal deployments.
 ## Flow
 
 1. Push to `main`.
-2. GitHub Actions builds `ghcr.io/asmolowe5/household_app:latest`.
+2. GitHub Actions builds the GitHub Container Registry image for this repo.
 3. The NAS pulls that image and restarts the `portal` container.
 4. Postgres data remains in the local Docker volume on the NAS.
 
@@ -16,12 +16,12 @@ If `docker-compose pull portal` says the image is unauthorized, create a GitHub
 personal access token with `read:packages`, then run:
 
 ```sh
-echo "YOUR_TOKEN" | sudo docker login ghcr.io -u asmolowe5 --password-stdin
+echo "YOUR_TOKEN" | sudo docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 ```
 
 ## Deploy
 
-From `/volume1/docker/smolowe-portal`:
+From the project directory on the NAS:
 
 ```sh
 sh scripts/deploy.sh
@@ -53,7 +53,7 @@ Normal deployments should use the prebuilt image path.
 
 ## Cloudflare Access
 
-Cloudflare Tunnel should continue routing `axiominteract.com` to:
+Cloudflare Tunnel should continue routing your private domain to:
 
 ```text
 http://portal:3000
