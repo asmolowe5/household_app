@@ -11,26 +11,14 @@ rtspTransports: [tcp]
 # Only the portal container reaches this via Docker DNS at http://mediamtx:8888.
 hlsAddress: :8888
 hlsAlwaysRemux: yes
-hlsAllowOrigin: '*'
+hlsAllowOrigins: ['*']
 
 # Authentication.
+# authInternalUsers is provided via the MTX_AUTHINTERNALUSERS env var in
+# docker-compose.yml. MediaMTX does not reliably substitute ${VAR} inside the
+# auth section of this YAML file, so passing the resolved JSON via env var
+# sidesteps the issue while keeping the secret out of this committed file.
 authMethod: internal
-authInternalUsers:
-  # Publisher: must use this user + the shared secret to push RTSP.
-  - user: publisher
-    pass: ${MEDIAMTX_PUBLISH_SECRET}
-    ips: []
-    permissions:
-      - action: publish
-        path:
-  # Reader: anonymous reads are allowed because the HLS port is Docker-internal
-  # only. The portal's auth-gated proxy is the real reader-side security boundary.
-  - user: any
-    pass:
-    ips: []
-    permissions:
-      - action: read
-        path:
 
 # Accept any stream name. The proxy validates names with a regex on the way in.
 paths:

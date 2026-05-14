@@ -40,7 +40,7 @@ services:
     container_name: ${MEDIAMTX_CONTAINER_NAME:?Set MEDIAMTX_CONTAINER_NAME in .env}
     restart: unless-stopped
     environment:
-      MEDIAMTX_PUBLISH_SECRET: ${MEDIAMTX_PUBLISH_SECRET:?Set MEDIAMTX_PUBLISH_SECRET in .env}
+      MTX_AUTHINTERNALUSERS: '[{"user":"publisher","pass":"${MEDIAMTX_PUBLISH_SECRET:?Set MEDIAMTX_PUBLISH_SECRET in .env}","permissions":[{"action":"publish"}]},{"user":"any","pass":"","permissions":[{"action":"read"}]}]'
     volumes:
       - ./docker/mediamtx/mediamtx.yml:/mediamtx.yml:ro
     ports:
