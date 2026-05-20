@@ -1,100 +1,94 @@
 import Link from "next/link";
+import { BarChart3, Camera, Home, ArrowRight } from "lucide-react";
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
-      <section>
-        <h1 className="text-xl font-semibold tracking-tight">Welcome home</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-secondary">
-          This is the stable starting dashboard for the local household portal.
-          The app is running from the NAS and is ready for local modules.
+    <div className="space-y-8 max-w-4xl mx-auto py-4">
+      {/* Welcome Header */}
+      <section className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+          Welcome home
+        </h1>
+        <p className="text-sm text-text-tertiary">
+          Select a section below to access and manage your household dashboard.
         </p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        <StatusCard label="Auth" value="PIN Login" status="green" />
-        <StatusCard label="Data" value="Local Postgres" status="green" />
-        <StatusCard label="Access" value="Cloudflare Tunnel" status="green" />
-      </section>
-
-      <section className="rounded-lg border border-border-default bg-bg-secondary p-5">
-        <h2 className="text-sm font-semibold">Next modules</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <ModuleCard
-            title="Finances"
-            description="Local budgets and Plaid sync."
+      {/* Module Navigation Grid */}
+      <section className="space-y-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+          Household Modules
+        </h2>
+        
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Finances Card */}
+          <Link
             href="/finance"
-          />
-          <ModuleCard
-            title="Cameras"
-            description="Live webcam viewer."
+            className="group relative flex flex-col justify-between rounded-2xl border border-border-default bg-bg-secondary p-5 transition-all duration-200 hover:border-accent hover:bg-bg-tertiary/30"
+          >
+            <div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-muted text-accent mb-4">
+                <BarChart3 size={20} />
+              </div>
+              <h3 className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">
+                Finances
+              </h3>
+              <p className="mt-1 text-xs text-text-tertiary leading-relaxed">
+                Track your local household budget, expenses, bank balances, and transactions automatically.
+              </p>
+            </div>
+            <div className="mt-5 flex items-center gap-1 text-xs font-semibold text-accent opacity-0 group-hover:opacity-100 transition-opacity">
+              <span>Open Module</span>
+              <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" />
+            </div>
+          </Link>
+
+          {/* Cameras Card */}
+          <Link
             href="/cameras"
-          />
-          <ModuleCard title="Home" description="Smart-home controls and status." />
+            className="group relative flex flex-col justify-between rounded-2xl border border-border-default bg-bg-secondary p-5 transition-all duration-200 hover:border-accent hover:bg-bg-tertiary/30"
+          >
+            <div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-muted text-accent mb-4">
+                <Camera size={20} />
+              </div>
+              <h3 className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">
+                Cameras
+              </h3>
+              <p className="mt-1 text-xs text-text-tertiary leading-relaxed">
+                Monitor live feeds and recordings from your security cameras around the house.
+              </p>
+            </div>
+            <div className="mt-5 flex items-center gap-1 text-xs font-semibold text-accent opacity-0 group-hover:opacity-100 transition-opacity">
+              <span>Open Module</span>
+              <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" />
+            </div>
+          </Link>
+
+          {/* Home Automation Card (Coming Soon) */}
+          <div className="relative flex flex-col justify-between rounded-2xl border border-border-subtle bg-bg-secondary/40 p-5 opacity-70">
+            <div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-bg-tertiary text-text-tertiary mb-4">
+                <Home size={20} />
+              </div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-text-primary">
+                  Home Automation
+                </h3>
+                <span className="rounded-full bg-bg-tertiary px-1.5 py-0.5 text-[8px] font-bold text-text-tertiary uppercase">
+                  Soon
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-text-tertiary leading-relaxed">
+                Connect and control smart lighting, climate sensors, and other household appliances.
+              </p>
+            </div>
+            <div className="mt-5 text-[10px] text-text-tertiary italic">
+              Module under development
+            </div>
+          </div>
         </div>
       </section>
-    </div>
-  );
-}
-
-function StatusCard({
-  label,
-  value,
-  status,
-}: {
-  label: string;
-  value: string;
-  status: "green" | "red";
-}) {
-  return (
-    <div className="rounded-lg border border-border-default bg-bg-secondary px-5 py-4">
-      <div className="flex items-center gap-2">
-        <span
-          className={`inline-block h-1.5 w-1.5 rounded-full ${
-            status === "green" ? "bg-status-green" : "bg-status-red"
-          }`}
-        />
-        <p className="text-xs font-medium text-text-tertiary">{label}</p>
-      </div>
-      <p className="mt-1.5 text-base font-semibold tracking-tight text-text-primary">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function ModuleCard({
-  title,
-  description,
-  href,
-}: {
-  title: string;
-  description: string;
-  href?: string;
-}) {
-  const content = (
-    <>
-      <p className="text-sm font-medium">{title}</p>
-      <p className="mt-1 text-xs leading-relaxed text-text-tertiary">
-        {description}
-      </p>
-    </>
-  );
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className="block rounded-md border border-border-subtle bg-bg-primary p-4 transition-colors hover:bg-bg-secondary"
-      >
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <div className="rounded-md border border-border-subtle bg-bg-primary p-4">
-      {content}
     </div>
   );
 }
