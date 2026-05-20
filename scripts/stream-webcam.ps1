@@ -9,7 +9,7 @@
 $ErrorActionPreference = "Stop"
 
 # === Edit these values once for your setup ===
-$WebcamDevice = "Integrated Camera"
+$WebcamDevice = "HD Pro Webcam C920"
 $NasHost      = "192.168.0.120"
 $StreamName   = "webcam"
 $Width        = 640

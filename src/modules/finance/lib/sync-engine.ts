@@ -4,6 +4,7 @@ import { eq, inArray } from "drizzle-orm";
 import { plaidClient } from "./plaid-client";
 import { mapTransaction } from "./category-mapper";
 import { getCategories, getCategoryRules } from "@/modules/finance/queries";
+import { categorizeTransactionWithAI } from "./ai-categorizer";
 import type { RemovedTransaction } from "plaid";
 
 export async function syncPlaidItem(
@@ -47,6 +48,30 @@ export async function syncPlaidItem(
 
       if (!account) continue;
 
+      let finalCategoryId = mapped.categoryId;
+      let finalIsReviewed = mapped.isReviewed;
+      let notes: string | null = null;
+
+      if (!finalCategoryId) {
+        try {
+          const aiResult = await categorizeTransactionWithAI(
+            txn.merchant_name ?? txn.name,
+            txn.personal_finance_category
+              ? [txn.personal_finance_category.primary, txn.personal_finance_category.detailed].filter(Boolean)
+              : [],
+            txn.amount,
+            cats.map((c) => ({ id: c.id, name: c.name })),
+          );
+          if (aiResult && aiResult.categoryId) {
+            finalCategoryId = aiResult.categoryId;
+            finalIsReviewed = false;
+            notes = `AI suggested: ${aiResult.reasoning}`;
+          }
+        } catch (e) {
+          console.error("Failed to run AI categorization on sync", e);
+        }
+      }
+
       await db
         .insert(transactions)
         .values({
@@ -58,9 +83,10 @@ export async function syncPlaidItem(
           plaidCategory: txn.personal_finance_category
             ? [txn.personal_finance_category.primary, txn.personal_finance_category.detailed].filter(Boolean)
             : [],
-          portalCategoryId: mapped.categoryId,
+          portalCategoryId: finalCategoryId,
           transactionType: mapped.transactionType,
-          isReviewed: mapped.isReviewed,
+          isReviewed: finalIsReviewed,
+          notes: notes,
         })
         .onConflictDoUpdate({
           target: transactions.plaidTransactionId,
@@ -68,9 +94,10 @@ export async function syncPlaidItem(
             date: txn.date,
             amount: String(Math.abs(txn.amount)),
             merchantName: txn.merchant_name ?? txn.name,
-            portalCategoryId: mapped.categoryId,
+            portalCategoryId: finalCategoryId,
             transactionType: mapped.transactionType,
-            isReviewed: mapped.isReviewed,
+            isReviewed: finalIsReviewed,
+            notes: notes,
           },
         });
     }

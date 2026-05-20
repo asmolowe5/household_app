@@ -22,6 +22,7 @@ export function TransactionDetail({
     transaction.category_name ?? "",
   );
   const [txnType, setTxnType] = useState(transaction.transaction_type);
+  const [notes, setNotes] = useState(transaction.notes ?? "");
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
@@ -35,6 +36,7 @@ export function TransactionDetail({
         transaction_id: transaction.id,
         portal_category_id: category?.id ?? null,
         transaction_type: txnType,
+        notes: notes || null,
         is_reviewed: true,
       }),
     });
@@ -133,6 +135,25 @@ export function TransactionDetail({
             <p className="text-sm text-text-primary">
               {transaction.is_reviewed ? "Reviewed" : "Needs Review"}
             </p>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <p className="mb-1.5 text-xs font-medium text-text-tertiary">
+              Notes / AI Explanation
+            </p>
+            {editing ? (
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Enter notes or explanation..."
+                className="w-full h-20 rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary resize-none focus:outline-none"
+              />
+            ) : (
+              <p className="text-sm text-text-primary whitespace-pre-wrap">
+                {notes || <span className="italic text-text-tertiary">No notes entered</span>}
+              </p>
+            )}
           </div>
         </div>
 

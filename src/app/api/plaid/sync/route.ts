@@ -11,25 +11,74 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { plaid_item_id } = await request.json();
-
-  const [item] = await db
-    .select({
-      id: plaidItems.id,
-      accessToken: plaidItems.accessToken,
-      cursor: plaidItems.cursor,
-    })
-    .from(plaidItems)
-    .where(and(eq(plaidItems.id, plaid_item_id), eq(plaidItems.userId, user.id)))
-    .limit(1);
-
-  if (!item || !item.accessToken) {
-    return NextResponse.json({ error: "Item not found" }, { status: 404 });
+  let plaid_item_id: string | undefined;
+  try {
+    const body = await request.json();
+    plaid_item_id = body.plaid_item_id;
+  } catch {
+    // Gracefully handle empty body and default to syncing all items
   }
 
-  const result = await syncPlaidItem(item.id, item.accessToken, item.cursor);
+  if (plaid_item_id) {
+    const [item] = await db
+      .select({
+        id: plaidItems.id,
+        accessToken: plaidItems.accessToken,
+        cursor: plaidItems.cursor,
+      })
+      .from(plaidItems)
+      .where(and(eq(plaidItems.id, plaid_item_id), eq(plaidItems.userId, user.id)))
+      .limit(1);
 
-  return NextResponse.json({ success: true, ...result });
+    if (!item || !item.accessToken) {
+      return NextResponse.json({ error: "Item not found" }, { status: 404 });
+    }
+
+    const result = await syncPlaidItem(item.id, item.accessToken, item.cursor);
+    return NextResponse.json({ success: true, ...result });
+  } else {
+    const items = await db
+      .select({
+        id: plaidItems.id,
+        accessToken: plaidItems.accessToken,
+        cursor: plaidItems.cursor,
+      })
+      .from(plaidItems)
+      .where(eq(plaidItems.userId, user.id));
+
+    if (items.length === 0) {
+      return NextResponse.json({ success: true, message: "No items connected", added: 0, modified: 0, removed: 0 });
+    }
+
+    const results = [];
+    let totalAdded = 0;
+    let totalModified = 0;
+    let totalRemoved = 0;
+
+    for (const item of items) {
+      if (!item.accessToken) continue;
+      try {
+        const result = await syncPlaidItem(item.id, item.accessToken, item.cursor);
+        totalAdded += result.added;
+        totalModified += result.modified;
+        totalRemoved += result.removed;
+        results.push({ id: item.id, ...result });
+      } catch (err) {
+        results.push({
+          id: item.id,
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      added: totalAdded,
+      modified: totalModified,
+      removed: totalRemoved,
+      synced: results,
+    });
+  }
 }
 
 export async function PATCH(request: Request) {
