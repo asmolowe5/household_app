@@ -116,7 +116,7 @@ export function FinanceDashboardClient({
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <PlaidLinkButton variant="secondary" />
           <button
             onClick={handleManualSync}
@@ -142,49 +142,49 @@ export function FinanceDashboardClient({
       {/* Bird's Eye Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
         {/* Net Worth */}
-        <div className="rounded-2xl border border-border-default bg-bg-secondary p-5 shadow-sm">
+        <div className="rounded-2xl border border-border-default bg-bg-secondary p-4 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-text-tertiary">Net Worth</p>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-muted text-accent">
               <Scale size={16} />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-text-primary tabular-nums">
+          <p className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-text-primary tabular-nums">
             {formatCurrencyPrecise(netWorth)}
           </p>
-          <div className="mt-1 flex items-center gap-1 text-[11px] text-text-tertiary">
+          <div className="mt-1 flex items-center gap-1 text-[10px] sm:text-[11px] text-text-tertiary">
             <span>Assets minus Liabilities</span>
           </div>
         </div>
 
         {/* Cash Assets */}
-        <div className="rounded-2xl border border-border-default bg-bg-secondary p-5 shadow-sm">
+        <div className="rounded-2xl border border-border-default bg-bg-secondary p-4 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-text-tertiary">Total Cash Assets</p>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-status-green/10 text-status-green">
               <TrendingUp size={16} />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-text-primary tabular-nums">
+          <p className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-text-primary tabular-nums">
             {formatCurrencyPrecise(totalCash)}
           </p>
-          <div className="mt-1 flex items-center gap-1 text-[11px] text-text-tertiary">
+          <div className="mt-1 flex items-center gap-1 text-[10px] sm:text-[11px] text-text-tertiary">
             <span>{cashAccounts.length} accounts linked</span>
           </div>
         </div>
 
         {/* Credit Debt */}
-        <div className="rounded-2xl border border-border-default bg-bg-secondary p-5 shadow-sm">
+        <div className="rounded-2xl border border-border-default bg-bg-secondary p-4 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-text-tertiary">Credit Card Debt</p>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-status-red/10 text-status-red">
               <TrendingDown size={16} />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-text-primary tabular-nums">
+          <p className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-text-primary tabular-nums">
             {formatCurrencyPrecise(totalDebt)}
           </p>
-          <div className="mt-1 flex items-center gap-1 text-[11px] text-text-tertiary">
+          <div className="mt-1 flex items-center gap-1 text-[10px] sm:text-[11px] text-text-tertiary">
             <span>{creditAccounts.length} cards linked</span>
           </div>
         </div>
@@ -193,7 +193,7 @@ export function FinanceDashboardClient({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column: Bank Accounts List */}
         <div className="space-y-4 lg:col-span-1">
-          <div className="rounded-2xl border border-border-default bg-bg-secondary p-6">
+          <div className="rounded-2xl border border-border-default bg-bg-secondary p-4 sm:p-6">
             <h2 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
               <Landmark size={16} className="text-text-secondary" />
               Connected Accounts

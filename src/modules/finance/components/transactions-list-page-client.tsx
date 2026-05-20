@@ -181,7 +181,7 @@ export function TransactionsListPageClient({
       )}
 
       {/* Search and Filters Drawer */}
-      <div className="rounded-2xl border border-border-default bg-bg-secondary p-5 shadow-sm space-y-4">
+      <div className="rounded-2xl border border-border-default bg-bg-secondary p-4 sm:p-5 shadow-sm space-y-4">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-tertiary" />
@@ -195,16 +195,16 @@ export function TransactionsListPageClient({
         </div>
 
         {/* Filter selectors */}
-        <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
           {/* Account */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 min-w-0">
             <label className="text-[10px] font-semibold uppercase tracking-wider text-text-tertiary">
               Account
             </label>
             <select
               value={selectedAccountId}
               onChange={(e) => setSelectedAccountId(e.target.value)}
-              className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-1.5 text-xs text-text-primary focus:outline-none"
+              className="w-full min-w-0 rounded-lg border border-border-default bg-bg-tertiary px-3 py-1.5 text-xs text-text-primary focus:outline-none truncate"
             >
               <option value="all">All Accounts</option>
               {accounts.map((acc) => (
@@ -216,14 +216,14 @@ export function TransactionsListPageClient({
           </div>
 
           {/* Category */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 min-w-0">
             <label className="text-[10px] font-semibold uppercase tracking-wider text-text-tertiary">
               Category
             </label>
             <select
               value={selectedCategoryId}
               onChange={(e) => setSelectedCategoryId(e.target.value)}
-              className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-1.5 text-xs text-text-primary focus:outline-none"
+              className="w-full min-w-0 rounded-lg border border-border-default bg-bg-tertiary px-3 py-1.5 text-xs text-text-primary focus:outline-none"
             >
               <option value="all">All Categories</option>
               <option value="uncategorized">Uncategorized</option>
@@ -236,14 +236,14 @@ export function TransactionsListPageClient({
           </div>
 
           {/* Review Status */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 min-w-0">
             <label className="text-[10px] font-semibold uppercase tracking-wider text-text-tertiary">
               Review Status
             </label>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-1.5 text-xs text-text-primary focus:outline-none"
+              className="w-full min-w-0 rounded-lg border border-border-default bg-bg-tertiary px-3 py-1.5 text-xs text-text-primary focus:outline-none"
             >
               <option value="all">All Statuses</option>
               <option value="needs_review">Needs Review</option>
@@ -252,14 +252,14 @@ export function TransactionsListPageClient({
           </div>
 
           {/* Transaction Type */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 min-w-0">
             <label className="text-[10px] font-semibold uppercase tracking-wider text-text-tertiary">
               Type
             </label>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-1.5 text-xs text-text-primary focus:outline-none"
+              className="w-full min-w-0 rounded-lg border border-border-default bg-bg-tertiary px-3 py-1.5 text-xs text-text-primary focus:outline-none"
             >
               <option value="all">All Types</option>
               <option value="expense">Expense</option>
@@ -272,7 +272,7 @@ export function TransactionsListPageClient({
       </div>
 
       {/* Transaction List */}
-      <div className="rounded-2xl border border-border-default bg-bg-secondary p-4 md:p-6">
+      <div className="rounded-2xl border border-border-default bg-bg-secondary p-3 sm:p-6">
         {filteredTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Filter size={32} className="text-text-tertiary mb-3" />

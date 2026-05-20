@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
 import { ModuleShell } from "@/shared/components/module-shell";
+import { ArrowLeft } from "lucide-react";
 
 const subNavItems = [
   { href: "/finance", label: "Dashboard", exact: true },
@@ -43,9 +44,18 @@ export default function FinanceLayout({
   );
 
   return (
-    <ModuleShell title="Finance">
-      {subNav}
-      {children}
-    </ModuleShell>
+    <div className="space-y-4">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-text-tertiary transition-colors hover:text-text-primary"
+      >
+        <ArrowLeft size={14} />
+        Dashboard
+      </Link>
+      <ModuleShell title="Finance">
+        {subNav}
+        {children}
+      </ModuleShell>
+    </div>
   );
 }

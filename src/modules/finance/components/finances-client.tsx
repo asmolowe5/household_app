@@ -60,7 +60,7 @@ export function TransactionListClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-border-default bg-bg-secondary p-6 sm:p-8">
+      <div className="rounded-2xl border border-border-default bg-bg-secondary p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-text-primary">
             Recent Transactions
