@@ -32,7 +32,7 @@ export async function POST() {
       })
       .from(accounts)
       .leftJoin(plaidItems, eq(accounts.plaidItemId, plaidItems.id))
-      .where(and(eq(plaidItems.userId, user.id), eq(accounts.isVisible, true)));
+      .where(eq(accounts.isVisible, true));
 
     // 2. Fetch active categories
     const userCategories = await db
@@ -59,11 +59,9 @@ export async function POST() {
       })
       .from(transactions)
       .innerJoin(accounts, eq(transactions.accountId, accounts.id))
-      .innerJoin(plaidItems, eq(accounts.plaidItemId, plaidItems.id))
       .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
       .where(
         and(
-          eq(plaidItems.userId, user.id),
           eq(accounts.isVisible, true),
           gte(transactions.date, startDateStr)
         )
