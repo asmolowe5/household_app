@@ -20,7 +20,11 @@ export default function DashboardPage() {
       <section className="rounded-lg border border-border-default bg-bg-secondary p-5">
         <h2 className="text-sm font-semibold">Next modules</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <ModuleCard title="Finances" description="Local budgets and Plaid sync." />
+          <ModuleCard
+            title="Finances"
+            description="Local budgets and Plaid sync."
+            href="/finance"
+          />
           <ModuleCard
             title="Cameras"
             description="Live webcam viewer."
