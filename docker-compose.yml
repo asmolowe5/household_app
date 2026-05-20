@@ -32,6 +32,7 @@ services:
       PLAID_SECRET: ${PLAID_SECRET:-}
       PLAID_ENV: ${PLAID_ENV:-sandbox}
       CRON_SECRET: ${CRON_SECRET:?Set CRON_SECRET in .env}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     ports:
       - "3000:3000"
 

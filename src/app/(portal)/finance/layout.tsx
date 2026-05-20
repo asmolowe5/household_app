@@ -10,6 +10,7 @@ const subNavItems = [
   { href: "/finance", label: "Dashboard", exact: true },
   { href: "/finance/transactions", label: "Transactions" },
   { href: "/finance/trends", label: "Trends" },
+  { href: "/finance/insights", label: "Insight History" },
 ];
 
 export default function FinanceLayout({

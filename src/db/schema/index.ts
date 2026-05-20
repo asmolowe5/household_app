@@ -4,3 +4,5 @@ export { plaidItems } from "./plaid-items";
 export { accounts } from "./accounts";
 export { categories, categoryRules } from "./categories";
 export { transactions } from "./transactions";
+export { financeInsights } from "./finance-insights";
+

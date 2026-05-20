@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/shared/lib/auth/session";
 import { syncPlaidItem } from "@/modules/finance/lib/sync-engine";
 import { db } from "@/db";
 import { plaidItems, transactions, categoryRules } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -122,6 +122,21 @@ export async function PATCH(request: Request) {
           target: categoryRules.pattern,
           set: { categoryId: portal_category_id, source: "user" },
         });
+
+      // Retroactively categorize other uncategorized transactions with the same merchant name
+      await db
+        .update(transactions)
+        .set({
+          portalCategoryId: portal_category_id,
+          isReviewed: true,
+          notes: "Auto-categorized by user rule memory",
+        })
+        .where(
+          and(
+            eq(transactions.merchantName, txn.merchantName),
+            isNull(transactions.portalCategoryId)
+          )
+        );
     }
   }
 
