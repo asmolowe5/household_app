@@ -37,11 +37,18 @@ export function FinanceDashboardClient({
   const [syncError, setSyncError] = useState<string | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
 
+  // Filter visible accounts
+  const visibleAccounts = initialAccounts.filter((a) => a.is_visible);
+  const visibleAccountIds = new Set(visibleAccounts.map((a) => a.id));
+  const visibleTransactions = initialRecentTransactions.filter(
+    (t) => !t.account_id || visibleAccountIds.has(t.account_id)
+  );
+
   // Aggregate metrics
-  const cashAccounts = initialAccounts.filter(
+  const cashAccounts = visibleAccounts.filter(
     (a) => a.type === "depository" || a.subtype === "checking" || a.subtype === "savings"
   );
-  const creditAccounts = initialAccounts.filter(
+  const creditAccounts = visibleAccounts.filter(
     (a) => a.type === "credit" || a.type === "loan" || a.subtype === "credit card"
   );
 
@@ -200,7 +207,7 @@ export function FinanceDashboardClient({
               Connected Accounts
             </h2>
             <div className="space-y-3">
-               {initialAccounts.map((account) => {
+               {visibleAccounts.map((account) => {
                 const isDebt =
                   account.type === "credit" ||
                   account.type === "loan" ||
@@ -214,7 +221,7 @@ export function FinanceDashboardClient({
                     <div className="space-y-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-xs font-semibold text-text-primary group-hover:text-accent transition-colors">
-                          {account.name}
+                          {account.custom_name ?? account.name}
                         </p>
                         <span className="shrink-0 text-[9px] text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity">
                           View Txns →
@@ -245,7 +252,7 @@ export function FinanceDashboardClient({
         {/* Right Column: Transactions Review Area */}
         <div className="lg:col-span-2">
           <TransactionListClient
-            transactions={initialRecentTransactions}
+            transactions={visibleTransactions}
             categories={categories}
             reviewCount={initialReviewCount}
           />

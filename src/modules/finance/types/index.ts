@@ -30,6 +30,8 @@ export interface Account {
   created_at?: string;
   institution_name?: string;
   last_synced_at?: string | null;
+  custom_name: string | null;
+  is_visible: boolean;
 }
 
 export interface Transaction {

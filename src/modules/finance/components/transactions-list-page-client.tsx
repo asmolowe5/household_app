@@ -92,7 +92,14 @@ export function TransactionsListPageClient({
   const [selectedTxn, setSelectedTxn] = useState<ExtendedTransaction | null>(null);
 
   // Filter transactions
+  const visibleAccounts = accounts.filter((a) => a.is_visible);
+  const visibleAccountIds = new Set(visibleAccounts.map((a) => a.id));
+
   const filteredTransactions = transactions.filter((txn) => {
+    // 0. Filter hidden accounts
+    if (txn.account_id && !visibleAccountIds.has(txn.account_id)) {
+      return false;
+    }
     // 1. Search text
     if (search.trim() !== "") {
       const matchText = search.toLowerCase();
@@ -216,9 +223,9 @@ export function TransactionsListPageClient({
               className="w-full min-w-0 rounded-lg border border-border-default bg-bg-tertiary px-3 py-1.5 text-xs text-text-primary focus:outline-none truncate"
             >
               <option value="all">All Accounts</option>
-              {accounts.map((acc) => (
+              {visibleAccounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.institution_name})
+                  {acc.custom_name ?? acc.name} ({acc.institution_name})
                 </option>
               ))}
             </select>

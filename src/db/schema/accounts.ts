@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, numeric, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
 import { plaidItems } from "./plaid-items";
 
 export const accounts = pgTable("accounts", {
@@ -14,4 +14,6 @@ export const accounts = pgTable("accounts", {
   isoCurrencyCode: text("iso_currency_code").default("USD"),
   lastBalanceUpdate: timestamp("last_balance_update", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  customName: text("custom_name"),
+  isVisible: boolean("is_visible").default(true).notNull(),
 });

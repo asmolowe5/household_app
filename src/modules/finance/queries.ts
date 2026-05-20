@@ -16,6 +16,8 @@ export async function getAccounts(): Promise<Account[]> {
       availableBalance: accounts.availableBalance,
       institutionName: plaidItems.institutionName,
       lastSyncedAt: plaidItems.lastSyncedAt,
+      customName: accounts.customName,
+      isVisible: accounts.isVisible,
     })
     .from(accounts)
     .leftJoin(plaidItems, eq(accounts.plaidItemId, plaidItems.id))
@@ -31,6 +33,8 @@ export async function getAccounts(): Promise<Account[]> {
     available_balance: r.availableBalance ? Number(r.availableBalance) : null,
     institution_name: r.institutionName ?? "Unknown",
     last_synced_at: r.lastSyncedAt?.toISOString() ?? null,
+    custom_name: r.customName,
+    is_visible: r.isVisible,
   }));
 }
 
@@ -45,6 +49,7 @@ export async function getRecentTransactions(limit = 15): Promise<Transaction[]> 
       isReviewed: transactions.isReviewed,
       categoryName: categories.name,
       categoryIcon: categories.icon,
+      accountId: transactions.accountId,
     })
     .from(transactions)
     .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
@@ -60,6 +65,7 @@ export async function getRecentTransactions(limit = 15): Promise<Transaction[]> 
     is_reviewed: r.isReviewed ?? false,
     category_name: r.categoryName ?? null,
     category_icon: r.categoryIcon ?? null,
+    account_id: r.accountId,
   }));
 }
 
@@ -99,7 +105,14 @@ export async function getMonthExpenses(
       transactionType: transactions.transactionType,
     })
     .from(transactions)
-    .where(and(gte(transactions.date, startDate), lte(transactions.date, endDate)));
+    .innerJoin(accounts, eq(transactions.accountId, accounts.id))
+    .where(
+      and(
+        gte(transactions.date, startDate),
+        lte(transactions.date, endDate),
+        eq(accounts.isVisible, true)
+      )
+    );
 
   return rows.map((r) => ({
     amount: Number(r.amount),
@@ -205,4 +218,18 @@ export async function updateTransaction(
   if (updates.is_reviewed !== undefined) setValues.isReviewed = updates.is_reviewed;
 
   await db.update(transactions).set(setValues).where(eq(transactions.id, id));
+}
+
+export async function updateAccountSettings(
+  id: string,
+  updates: {
+    custom_name?: string | null;
+    is_visible?: boolean;
+  },
+): Promise<void> {
+  const setValues: Record<string, unknown> = {};
+  if (updates.custom_name !== undefined) setValues.customName = updates.custom_name;
+  if (updates.is_visible !== undefined) setValues.isVisible = updates.is_visible;
+
+  await db.update(accounts).set(setValues).where(eq(accounts.id, id));
 }

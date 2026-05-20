@@ -26,6 +26,7 @@ export default async function TransactionsPage() {
       categoryName: categories.name,
       categoryIcon: categories.icon,
       accountName: accounts.name,
+      accountCustomName: accounts.customName,
       accountId: accounts.id,
     })
     .from(transactions)
@@ -42,7 +43,7 @@ export default async function TransactionsPage() {
     is_reviewed: r.isReviewed ?? false,
     category_name: r.categoryName ?? null,
     category_icon: r.categoryIcon ?? null,
-    account_name: r.accountName,
+    account_name: r.accountCustomName ?? r.accountName,
     account_id: r.accountId,
     notes: r.notes ?? null,
   }));
