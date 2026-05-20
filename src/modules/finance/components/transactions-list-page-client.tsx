@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Account, Transaction, Category } from "@/modules/finance/types";
 import { TransactionDetail } from "./transaction-detail";
 import { formatCurrencyPrecise, formatDate } from "@/shared/lib/utils";
@@ -65,14 +65,23 @@ export function TransactionsListPageClient({
   reviewCount,
 }: TransactionsListPageClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const accountParam = searchParams.get("accountId") ?? "all";
   const [isPending, startTransition] = useTransition();
 
   // Search & Filter state
   const [search, setSearch] = useState("");
-  const [selectedAccountId, setSelectedAccountId] = useState("all");
+  const [selectedAccountId, setSelectedAccountId] = useState(accountParam);
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all"); // 'all', 'needs_review', 'reviewed'
   const [selectedType, setSelectedType] = useState("all"); // 'all', 'expense', 'income'
+
+  // Keep state in sync if URL query parameter changes
+  useEffect(() => {
+    if (accountParam) {
+      setSelectedAccountId(accountParam);
+    }
+  }, [accountParam]);
 
   // AI Categorize state
   const [runningAI, setRunningAI] = useState(false);

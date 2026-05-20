@@ -4,6 +4,7 @@ import { transactions, categories, accounts } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import type { Transaction } from "@/modules/finance/types";
 import { TransactionsListPageClient } from "@/modules/finance/components/transactions-list-page-client";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -47,11 +48,13 @@ export default async function TransactionsPage() {
   }));
 
   return (
-    <TransactionsListPageClient
-      transactions={txnData}
-      accounts={accountList}
-      categories={categoryList}
-      reviewCount={reviewCount}
-    />
+    <Suspense fallback={<div className="text-xs text-text-tertiary">Loading transactions...</div>}>
+      <TransactionsListPageClient
+        transactions={txnData}
+        accounts={accountList}
+        categories={categoryList}
+        reviewCount={reviewCount}
+      />
+    </Suspense>
   );
 }

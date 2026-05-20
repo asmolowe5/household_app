@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { Account, Transaction, Category } from "@/modules/finance/types";
 import { TransactionListClient } from "./finances-client";
 import { PlaidLinkButton } from "./plaid-link-button";
@@ -199,28 +200,42 @@ export function FinanceDashboardClient({
               Connected Accounts
             </h2>
             <div className="space-y-3">
-              {initialAccounts.map((account) => {
+               {initialAccounts.map((account) => {
                 const isDebt =
                   account.type === "credit" ||
                   account.type === "loan" ||
                   account.subtype === "credit card";
                 return (
-                  <div
+                  <Link
                     key={account.id}
-                    className="flex items-center justify-between rounded-xl border border-border-subtle bg-bg-tertiary/40 p-3"
+                    href={`/finance/transactions?accountId=${account.id}`}
+                    className="block rounded-xl border border-border-subtle bg-bg-tertiary/40 p-3 transition-all hover:bg-bg-tertiary/80 hover:border-accent group"
                   >
-                    <div className="min-w-0 pr-2">
-                      <p className="truncate text-xs font-semibold text-text-primary">
-                        {account.name}
-                      </p>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-xs font-semibold text-text-primary group-hover:text-accent transition-colors">
+                          {account.name}
+                        </p>
+                        <span className="shrink-0 text-[9px] text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity">
+                          View Txns →
+                        </span>
+                      </div>
                       <p className="text-[10px] text-text-tertiary truncate">
                         {account.institution_name} • <span className="capitalize">{account.subtype ?? account.type}</span>
                       </p>
+                      
+                      <div className="border-t border-border-subtle/50 my-2" />
+                      
+                      <div className="flex items-center justify-between pt-0.5">
+                        <span className="text-[9px] text-text-tertiary uppercase font-medium tracking-wider">
+                          Balance
+                        </span>
+                        <span className={`text-xs font-bold tabular-nums ${isDebt ? "text-text-primary" : "text-status-green"}`}>
+                          {formatCurrencyPrecise(account.current_balance ?? 0)}
+                        </span>
+                      </div>
                     </div>
-                    <p className={`shrink-0 text-xs font-bold tabular-nums ${isDebt ? "text-text-primary" : "text-status-green"}`}>
-                      {formatCurrencyPrecise(account.current_balance ?? 0)}
-                    </p>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
