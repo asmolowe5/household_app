@@ -23,7 +23,7 @@ export async function getFinanceTransactions(limit = 15): Promise<Transaction[]>
       plaidCategory: transactions.plaidCategory,
       portalCategoryId: transactions.portalCategoryId,
       isAnomaly: transactions.isAnomaly,
-      projectId: transactions.projectId,
+      propertyId: transactions.propertyId,
       notes: transactions.notes,
       createdAt: transactions.createdAt,
       categoryName: categories.name,
@@ -44,6 +44,7 @@ export async function getFinanceTransactions(limit = 15): Promise<Transaction[]>
     category_name: r.categoryName ?? null,
     category_icon: r.categoryIcon ?? null,
     category: r.categoryName ? { id: r.portalCategoryId!, name: r.categoryName, monthly_budget: 0, type: "discretionary" as const, sort_order: 0, icon: r.categoryIcon } : undefined,
+    property_id: r.propertyId,
   }));
 }
 

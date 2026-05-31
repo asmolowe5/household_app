@@ -3,18 +3,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Pencil } from "lucide-react";
-import type { Transaction, Category } from "@/modules/finance/types";
+import type { Transaction, Category, Property } from "@/modules/finance/types";
 import { formatCurrencyPrecise, formatDate } from "@/shared/lib/utils";
 
 interface TransactionDetailProps {
   transaction: Transaction;
   categories: Category[];
+  properties?: Property[];
   onClose: () => void;
 }
 
 export function TransactionDetail({
   transaction,
   categories,
+  properties = [],
   onClose,
 }: TransactionDetailProps) {
   const [editing, setEditing] = useState(false);
@@ -22,6 +24,9 @@ export function TransactionDetail({
     transaction.category_name ?? "",
   );
   const [txnType, setTxnType] = useState(transaction.transaction_type);
+  const [selectedPropertyId, setSelectedPropertyId] = useState(
+    transaction.property_id ?? "",
+  );
   const [notes, setNotes] = useState(transaction.notes ?? "");
   const [saving, setSaving] = useState(false);
   const router = useRouter();
@@ -38,6 +43,7 @@ export function TransactionDetail({
         transaction_type: txnType,
         notes: notes || null,
         is_reviewed: true,
+        property_id: selectedPropertyId || null,
       }),
     });
     setSaving(false);
@@ -123,6 +129,33 @@ export function TransactionDetail({
             ) : (
               <p className="text-sm capitalize text-text-primary">
                 {txnType.replace("_", " ")}
+              </p>
+            )}
+          </div>
+
+          {/* Property */}
+          <div>
+            <p className="mb-1.5 text-xs font-medium text-text-tertiary">
+              Property Link
+            </p>
+            {editing ? (
+              <select
+                value={selectedPropertyId}
+                onChange={(e) => setSelectedPropertyId(e.target.value)}
+                className="w-full rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:outline-none"
+              >
+                <option value="">None / Personal</option>
+                {properties.map((prop) => (
+                  <option key={prop.id} value={prop.id}>
+                    {prop.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-sm text-text-primary">
+                {properties.find((p) => p.id === selectedPropertyId)?.name ?? (
+                  <span className="italic text-text-tertiary">None / Personal</span>
+                )}
               </p>
             )}
           </div>

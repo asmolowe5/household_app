@@ -87,7 +87,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { transaction_id, portal_category_id, transaction_type, notes, is_reviewed } =
+  const { transaction_id, portal_category_id, transaction_type, notes, is_reviewed, property_id } =
     await request.json();
 
   if (!transaction_id) {
@@ -99,6 +99,7 @@ export async function PATCH(request: Request) {
   if (transaction_type !== undefined) setValues.transactionType = transaction_type;
   if (notes !== undefined) setValues.notes = notes;
   if (is_reviewed !== undefined) setValues.isReviewed = is_reviewed;
+  if (property_id !== undefined) setValues.propertyId = property_id;
 
   await db.update(transactions).set(setValues).where(eq(transactions.id, transaction_id));
 

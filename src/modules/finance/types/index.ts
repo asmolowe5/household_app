@@ -46,13 +46,14 @@ export interface Transaction {
   plaid_category?: string[] | null;
   portal_category_id?: string | null;
   is_anomaly?: boolean;
-  project_id?: string | null;
+  property_id?: string | null;
   notes?: string | null;
   created_at?: string;
   category_name?: string | null;
   category_icon?: string | null;
   category?: Category;
   account?: Account;
+  property?: Property;
 }
 
 export interface Category {
@@ -76,14 +77,14 @@ export interface CategoryRule {
   created_at?: string;
 }
 
-export interface Project {
+export interface Property {
   id: string;
   name: string;
-  estimated_budget: number | null;
+  address: string | null;
+  monthly_rent_target: number;
   is_active: boolean;
-  created_at: string;
-  closed_at: string | null;
   notes: string | null;
+  created_at?: string;
 }
 
 export interface CategorySpend extends Category {

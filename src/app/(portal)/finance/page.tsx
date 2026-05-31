@@ -1,4 +1,4 @@
-import { getAccounts, getRecentTransactions, getCategories, getReviewCount } from "@/modules/finance/queries";
+import { getAccounts, getRecentTransactions, getCategories, getReviewCount, getProperties } from "@/modules/finance/queries";
 import { FinancesEmptyState } from "@/modules/finance/components/empty-state";
 import { FinanceDashboardClient } from "@/modules/finance/components/dashboard-client";
 
@@ -9,6 +9,7 @@ export default async function FinancePage() {
   const categories = await getCategories();
   const recentTransactions = await getRecentTransactions(5);
   const reviewCount = await getReviewCount();
+  const properties = await getProperties();
 
   if (accounts.length === 0) {
     return <FinancesEmptyState />;
@@ -20,6 +21,7 @@ export default async function FinancePage() {
       initialRecentTransactions={recentTransactions}
       initialReviewCount={reviewCount}
       categories={categories}
+      properties={properties}
     />
   );
 }

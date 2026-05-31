@@ -1,8 +1,8 @@
 import { db } from "@/db";
-import { accounts, categories, categoryRules, transactions } from "@/db/schema";
+import { accounts, categories, categoryRules, transactions, properties } from "@/db/schema";
 import { plaidItems } from "@/db/schema";
 import { eq, desc, gte, lte, and, sql } from "drizzle-orm";
-import type { Account, Transaction, Category, CategorySpend, MonthSummary, CategoryRule } from "./types";
+import type { Account, Transaction, Category, CategorySpend, MonthSummary, CategoryRule, Property } from "./types";
 
 export async function getAccounts(): Promise<Account[]> {
   const rows = await db
@@ -50,6 +50,7 @@ export async function getRecentTransactions(limit = 15): Promise<Transaction[]> 
       categoryName: categories.name,
       categoryIcon: categories.icon,
       accountId: transactions.accountId,
+      propertyId: transactions.propertyId,
     })
     .from(transactions)
     .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
@@ -66,6 +67,7 @@ export async function getRecentTransactions(limit = 15): Promise<Transaction[]> 
     category_name: r.categoryName ?? null,
     category_icon: r.categoryIcon ?? null,
     account_id: r.accountId,
+    property_id: r.propertyId,
   }));
 }
 
@@ -209,6 +211,7 @@ export async function updateTransaction(
     transaction_type?: string;
     notes?: string;
     is_reviewed?: boolean;
+    property_id?: string | null;
   },
 ): Promise<void> {
   const setValues: Record<string, unknown> = {};
@@ -216,6 +219,7 @@ export async function updateTransaction(
   if (updates.transaction_type !== undefined) setValues.transactionType = updates.transaction_type;
   if (updates.notes !== undefined) setValues.notes = updates.notes;
   if (updates.is_reviewed !== undefined) setValues.isReviewed = updates.is_reviewed;
+  if (updates.property_id !== undefined) setValues.propertyId = updates.property_id;
 
   await db.update(transactions).set(setValues).where(eq(transactions.id, id));
 }
@@ -232,4 +236,56 @@ export async function updateAccountSettings(
   if (updates.is_visible !== undefined) setValues.isVisible = updates.is_visible;
 
   await db.update(accounts).set(setValues).where(eq(accounts.id, id));
+}
+
+export async function getProperties(): Promise<Property[]> {
+  const rows = await db
+    .select()
+    .from(properties)
+    .where(eq(properties.isActive, true))
+    .orderBy(desc(properties.createdAt));
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    address: r.address,
+    monthly_rent_target: Number(r.monthlyRentTarget ?? 0),
+    is_active: r.isActive ?? true,
+    notes: r.notes,
+    created_at: r.createdAt?.toISOString(),
+  }));
+}
+
+export async function getPropertyTransactions(propertyId: string): Promise<Transaction[]> {
+  const rows = await db
+    .select({
+      id: transactions.id,
+      date: transactions.date,
+      amount: transactions.amount,
+      merchantName: transactions.merchantName,
+      transactionType: transactions.transactionType,
+      isReviewed: transactions.isReviewed,
+      categoryName: categories.name,
+      categoryIcon: categories.icon,
+      accountId: transactions.accountId,
+      notes: transactions.notes,
+    })
+    .from(transactions)
+    .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
+    .where(eq(transactions.propertyId, propertyId))
+    .orderBy(desc(transactions.date));
+
+  return rows.map((r) => ({
+    id: r.id,
+    date: r.date,
+    amount: Number(r.amount),
+    merchant_name: r.merchantName,
+    transaction_type: r.transactionType as Transaction["transaction_type"],
+    is_reviewed: r.isReviewed ?? false,
+    category_name: r.categoryName ?? null,
+    category_icon: r.categoryIcon ?? null,
+    account_id: r.accountId,
+    property_id: propertyId,
+    notes: r.notes,
+  }));
 }

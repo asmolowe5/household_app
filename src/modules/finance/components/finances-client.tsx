@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Transaction, Category } from "@/modules/finance/types";
+import type { Transaction, Category, Property } from "@/modules/finance/types";
 import { TransactionDetail } from "./transaction-detail";
 import { ReviewBadge } from "./review-badge";
 import { formatCurrencyPrecise, formatDate } from "@/shared/lib/utils";
@@ -43,12 +43,14 @@ function getIcon(name: string | null | undefined): LucideIcon {
 interface TransactionListClientProps {
   transactions: Transaction[];
   categories: Category[];
+  properties?: Property[];
   reviewCount: number;
 }
 
 export function TransactionListClient({
   transactions,
   categories,
+  properties = [],
   reviewCount,
 }: TransactionListClientProps) {
   const [selectedTxn, setSelectedTxn] = useState<Transaction | null>(null);
@@ -136,6 +138,7 @@ export function TransactionListClient({
         <TransactionDetail
           transaction={selectedTxn}
           categories={categories}
+          properties={properties}
           onClose={() => setSelectedTxn(null)}
         />
       )}

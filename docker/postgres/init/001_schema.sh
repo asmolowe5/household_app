@@ -52,6 +52,16 @@ CREATE TABLE IF NOT EXISTS accounts (
   created_at timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS properties (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  address text,
+  monthly_rent_target numeric(10, 2) DEFAULT 0,
+  is_active boolean DEFAULT true,
+  notes text,
+  created_at timestamptz DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
@@ -85,7 +95,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   transaction_type text DEFAULT 'expense',
   is_reviewed boolean DEFAULT false,
   is_anomaly boolean DEFAULT false,
-  project_id uuid,
+  property_id uuid REFERENCES properties(id) ON DELETE SET NULL,
   notes text,
   created_at timestamptz DEFAULT now()
 );
@@ -116,7 +126,8 @@ FROM (VALUES
   ('Rent/Mortgage', 'fixed', 10, 'building'),
   ('Utilities', 'fixed', 11, 'zap'),
   ('Insurance', 'fixed', 12, 'shield'),
-  ('Subscriptions', 'fixed', 13, 'repeat')
+  ('Subscriptions', 'fixed', 13, 'repeat'),
+  ('Real Estate', 'fixed', 14, 'building')
 ) AS seed(name, type, sort_order, icon)
 WHERE NOT EXISTS (
   SELECT 1 FROM categories WHERE categories.name = seed.name

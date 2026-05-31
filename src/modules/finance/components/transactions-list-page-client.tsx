@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Account, Transaction, Category } from "@/modules/finance/types";
+import type { Account, Transaction, Category, Property } from "@/modules/finance/types";
 import { TransactionDetail } from "./transaction-detail";
 import { formatCurrencyPrecise, formatDate } from "@/shared/lib/utils";
 import {
@@ -55,6 +55,7 @@ interface TransactionsListPageClientProps {
   transactions: ExtendedTransaction[];
   accounts: Account[];
   categories: Category[];
+  properties?: Property[];
   reviewCount: number;
 }
 
@@ -62,6 +63,7 @@ export function TransactionsListPageClient({
   transactions,
   accounts,
   categories,
+  properties = [],
   reviewCount,
 }: TransactionsListPageClientProps) {
   const router = useRouter();
@@ -364,6 +366,7 @@ export function TransactionsListPageClient({
         <TransactionDetail
           transaction={selectedTxn}
           categories={categories}
+          properties={properties}
           onClose={() => setSelectedTxn(null)}
         />
       )}

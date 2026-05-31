@@ -1,6 +1,7 @@
 import { pgTable, uuid, text, numeric, date, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { accounts } from "./accounts";
 import { categories } from "./categories";
+import { properties } from "./properties";
 
 export const transactions = pgTable("transactions", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -14,7 +15,7 @@ export const transactions = pgTable("transactions", {
   transactionType: text("transaction_type").default("expense"),
   isReviewed: boolean("is_reviewed").default(false),
   isAnomaly: boolean("is_anomaly").default(false),
-  projectId: uuid("project_id"),
+  propertyId: uuid("property_id").references(() => properties.id, { onDelete: "set null" }),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 }, (table) => [

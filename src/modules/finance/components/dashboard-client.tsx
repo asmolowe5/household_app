@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Account, Transaction, Category } from "@/modules/finance/types";
+import type { Account, Transaction, Category, Property } from "@/modules/finance/types";
 import { TransactionListClient } from "./finances-client";
 import { PlaidLinkButton } from "./plaid-link-button";
 import { formatCurrencyPrecise } from "@/shared/lib/utils";
@@ -23,6 +23,7 @@ interface FinanceDashboardClientProps {
   initialRecentTransactions: Transaction[];
   initialReviewCount: number;
   categories: Category[];
+  properties?: Property[];
 }
 
 export function FinanceDashboardClient({
@@ -30,6 +31,7 @@ export function FinanceDashboardClient({
   initialRecentTransactions,
   initialReviewCount,
   categories,
+  properties = [],
 }: FinanceDashboardClientProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -254,6 +256,7 @@ export function FinanceDashboardClient({
           <TransactionListClient
             transactions={visibleTransactions}
             categories={categories}
+            properties={properties}
             reviewCount={initialReviewCount}
           />
         </div>

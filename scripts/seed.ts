@@ -61,7 +61,8 @@ async function seed() {
       ('Rent/Mortgage', 'fixed', 10, 'building'),
       ('Utilities', 'fixed', 11, 'zap'),
       ('Insurance', 'fixed', 12, 'shield'),
-      ('Subscriptions', 'fixed', 13, 'repeat')
+      ('Subscriptions', 'fixed', 13, 'repeat'),
+      ('Real Estate', 'fixed', 14, 'building')
     ON CONFLICT DO NOTHING
   `;
 

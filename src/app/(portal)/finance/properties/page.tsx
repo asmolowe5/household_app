@@ -1,20 +1,24 @@
-import { getAccounts, getCategories, getReviewCount, getProperties } from "@/modules/finance/queries";
+import { getAccounts, getCategories, getProperties } from "@/modules/finance/queries";
+import { FinancesEmptyState } from "@/modules/finance/components/empty-state";
+import { PropertiesClient } from "@/modules/finance/components/properties-client";
 import { db } from "@/db";
-import { transactions, categories, accounts } from "@/db/schema";
+import { transactions, categories } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import type { Transaction } from "@/modules/finance/types";
-import { TransactionsListPageClient } from "@/modules/finance/components/transactions-list-page-client";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
-export default async function TransactionsPage() {
-  const accountList = await getAccounts();
+export default async function PropertiesPage() {
+  const accountsList = await getAccounts();
   const categoryList = await getCategories();
   const propertyList = await getProperties();
-  const reviewCount = await getReviewCount();
 
-  // Fetch all transactions with categories and account information
+  if (accountsList.length === 0) {
+    return <FinancesEmptyState />;
+  }
+
+  // Fetch all transactions with categories to calculate property stats
   const rows = await db
     .select({
       id: transactions.id,
@@ -26,17 +30,13 @@ export default async function TransactionsPage() {
       notes: transactions.notes,
       categoryName: categories.name,
       categoryIcon: categories.icon,
-      accountName: accounts.name,
-      accountCustomName: accounts.customName,
-      accountId: accounts.id,
       propertyId: transactions.propertyId,
     })
     .from(transactions)
     .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
-    .innerJoin(accounts, eq(transactions.accountId, accounts.id))
-    .orderBy(desc(transactions.date), desc(transactions.createdAt));
+    .orderBy(desc(transactions.date));
 
-  const txnData: (Transaction & { account_name: string; account_id: string; notes: string | null })[] = rows.map((r) => ({
+  const txnData: Transaction[] = rows.map((r) => ({
     id: r.id,
     date: r.date,
     amount: Number(r.amount),
@@ -45,20 +45,16 @@ export default async function TransactionsPage() {
     is_reviewed: r.isReviewed ?? false,
     category_name: r.categoryName ?? null,
     category_icon: r.categoryIcon ?? null,
-    account_name: r.accountCustomName ?? r.accountName,
-    account_id: r.accountId,
     notes: r.notes ?? null,
     property_id: r.propertyId,
   }));
 
   return (
-    <Suspense fallback={<div className="text-xs text-text-tertiary">Loading transactions...</div>}>
-      <TransactionsListPageClient
-        transactions={txnData}
-        accounts={accountList}
-        categories={categoryList}
+    <Suspense fallback={<div className="text-xs text-text-tertiary">Loading property dashboard...</div>}>
+      <PropertiesClient
         properties={propertyList}
-        reviewCount={reviewCount}
+        transactions={txnData}
+        categories={categoryList}
       />
     </Suspense>
   );
