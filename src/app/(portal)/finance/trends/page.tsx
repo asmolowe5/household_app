@@ -11,8 +11,10 @@ export default async function TrendsPage() {
   const startDate = new Date(year, month, 1).toISOString().split("T")[0];
   const endDate = new Date(year, month + 1, 0).toISOString().split("T")[0];
 
-  const categories = await getCategories();
-  const txns = await getMonthExpenses(startDate, endDate);
+  const [categories, txns] = await Promise.all([
+    getCategories(),
+    getMonthExpenses(startDate, endDate),
+  ]);
 
   const categorySpend = buildCategorySpend(categories, txns);
   const monthSummary = buildMonthSummary(categories, txns);

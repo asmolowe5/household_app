@@ -1,10 +1,10 @@
 import { db } from "@/db";
 import { transactions, accounts, plaidItems } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { plaidClient } from "./plaid-client";
 import { mapTransaction } from "./category-mapper";
 import { getCategories, getCategoryRules } from "@/modules/finance/queries";
-import { categorizeTransactionWithAI } from "./ai-categorizer";
+import { categorizeTransactionsWithAIBatch } from "./ai-categorizer";
 import type { RemovedTransaction } from "plaid";
 
 export async function syncPlaidItem(
@@ -29,7 +29,27 @@ export async function syncPlaidItem(
 
     const { added, modified, removed, next_cursor, has_more } = response.data;
 
-    for (const txn of added) {
+    // 1. Optimize Accounts Lookup (Avoid N+1 queries)
+    const plaidAccountIds = Array.from(new Set(added.map((t) => t.account_id)));
+    const matchedAccounts = plaidAccountIds.length > 0
+      ? await db
+          .select({ id: accounts.id, plaidAccountId: accounts.plaidAccountId })
+          .from(accounts)
+          .where(inArray(accounts.plaidAccountId, plaidAccountIds))
+      : [];
+
+    const accountMap = new Map<string, string>();
+    for (const acc of matchedAccounts) {
+      if (acc.plaidAccountId) {
+        accountMap.set(acc.plaidAccountId, acc.id);
+      }
+    }
+
+    // 2. Map Transactions with Rules
+    const mappedTxns = added.map((txn) => {
+      const dbAccountId = accountMap.get(txn.account_id);
+      if (!dbAccountId) return null;
+
       const plaidPrimary = txn.personal_finance_category?.primary ?? null;
       const plaidDetailed = txn.personal_finance_category?.detailed ?? null;
       const mapped = mapTransaction(
@@ -40,78 +60,96 @@ export async function syncPlaidItem(
         rules,
       );
 
-      const [account] = await db
-        .select({ id: accounts.id })
-        .from(accounts)
-        .where(eq(accounts.plaidAccountId, txn.account_id))
-        .limit(1);
+      return {
+        txn,
+        dbAccountId,
+        mapped,
+        finalCategoryId: mapped.categoryId,
+        finalIsReviewed: mapped.isReviewed,
+        notes: null as string | null,
+      };
+    }).filter((t): t is Exclude<typeof t, null> => t !== null);
 
-      if (!account) continue;
+    // 3. Batch AI Categorization (Avoid sequential single model calls)
+    const toAICategorize = mappedTxns.filter((t) => !t.finalCategoryId);
+    if (toAICategorize.length > 0) {
+      try {
+        const aiInputs = toAICategorize.map((t) => ({
+          id: t.txn.transaction_id,
+          merchantName: t.txn.merchant_name ?? t.txn.name,
+          plaidCategories: t.txn.personal_finance_category
+            ? [t.txn.personal_finance_category.primary, t.txn.personal_finance_category.detailed].filter(Boolean)
+            : [],
+          amount: t.txn.amount,
+        }));
 
-      let finalCategoryId = mapped.categoryId;
-      let finalIsReviewed = mapped.isReviewed;
-      let notes: string | null = null;
+        const aiResults = await categorizeTransactionsWithAIBatch(
+          aiInputs,
+          cats.map((c) => ({ id: c.id, name: c.name })),
+        );
 
-      if (!finalCategoryId) {
-        try {
-          const aiResult = await categorizeTransactionWithAI(
-            txn.merchant_name ?? txn.name,
-            txn.personal_finance_category
-              ? [txn.personal_finance_category.primary, txn.personal_finance_category.detailed].filter(Boolean)
-              : [],
-            txn.amount,
-            cats.map((c) => ({ id: c.id, name: c.name })),
-          );
+        for (const item of toAICategorize) {
+          const aiResult = aiResults.get(item.txn.transaction_id);
           if (aiResult && aiResult.categoryId) {
-            finalCategoryId = aiResult.categoryId;
-            finalIsReviewed = false;
-            notes = `AI suggested: ${aiResult.reasoning}`;
+            item.finalCategoryId = aiResult.categoryId;
+            item.finalIsReviewed = false;
+            item.notes = `AI suggested: ${aiResult.reasoning}`;
           }
-        } catch (e) {
-          console.error("Failed to run AI categorization on sync", e);
         }
+      } catch (e) {
+        console.error("Failed to run batch AI categorization during sync", e);
       }
+    }
+
+    // 4. Bulk Insert/Upsert (Avoid individual insert queries)
+    if (mappedTxns.length > 0) {
+      const insertValues = mappedTxns.map((item) => ({
+        accountId: item.dbAccountId,
+        plaidTransactionId: item.txn.transaction_id,
+        date: item.txn.date,
+        amount: String(Math.abs(item.txn.amount)),
+        merchantName: item.txn.merchant_name ?? item.txn.name,
+        plaidCategory: item.txn.personal_finance_category
+          ? [item.txn.personal_finance_category.primary, item.txn.personal_finance_category.detailed].filter(Boolean)
+          : [],
+        portalCategoryId: item.finalCategoryId,
+        transactionType: item.mapped.transactionType,
+        isReviewed: item.finalIsReviewed,
+        notes: item.notes,
+      }));
 
       await db
         .insert(transactions)
-        .values({
-          accountId: account.id,
-          plaidTransactionId: txn.transaction_id,
-          date: txn.date,
-          amount: String(Math.abs(txn.amount)),
-          merchantName: txn.merchant_name ?? txn.name,
-          plaidCategory: txn.personal_finance_category
-            ? [txn.personal_finance_category.primary, txn.personal_finance_category.detailed].filter(Boolean)
-            : [],
-          portalCategoryId: finalCategoryId,
-          transactionType: mapped.transactionType,
-          isReviewed: finalIsReviewed,
-          notes: notes,
-        })
+        .values(insertValues)
         .onConflictDoUpdate({
           target: transactions.plaidTransactionId,
           set: {
-            date: txn.date,
-            amount: String(Math.abs(txn.amount)),
-            merchantName: txn.merchant_name ?? txn.name,
-            portalCategoryId: finalCategoryId,
-            transactionType: mapped.transactionType,
-            isReviewed: finalIsReviewed,
-            notes: notes,
+            date: sql`excluded.date`,
+            amount: sql`excluded.amount`,
+            merchantName: sql`excluded.merchant_name`,
+            portalCategoryId: sql`excluded.portal_category_id`,
+            transactionType: sql`excluded.transaction_type`,
+            isReviewed: sql`excluded.is_reviewed`,
+            notes: sql`excluded.notes`,
           },
         });
     }
     totalAdded += added.length;
 
-    for (const txn of modified) {
-      await db
-        .update(transactions)
-        .set({
-          date: txn.date,
-          amount: String(Math.abs(txn.amount)),
-          merchantName: txn.merchant_name ?? txn.name,
-        })
-        .where(eq(transactions.plaidTransactionId, txn.transaction_id));
+    // 5. Parallelized Modifications
+    if (modified.length > 0) {
+      await Promise.all(
+        modified.map((txn) =>
+          db
+            .update(transactions)
+            .set({
+              date: txn.date,
+              amount: String(Math.abs(txn.amount)),
+              merchantName: txn.merchant_name ?? txn.name,
+            })
+            .where(eq(transactions.plaidTransactionId, txn.transaction_id))
+        )
+      );
     }
     totalModified += modified.length;
 

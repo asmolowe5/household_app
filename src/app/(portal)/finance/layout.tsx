@@ -10,7 +10,11 @@ const subNavItems = [
   { href: "/finance", label: "Dashboard", exact: true },
   { href: "/finance/transactions", label: "Transactions" },
   { href: "/finance/trends", label: "Trends" },
+  { href: "/finance/net-worth", label: "Net Worth" },
+  { href: "/finance/bills", label: "Bills" },
+  { href: "/finance/goals", label: "Goals" },
   { href: "/finance/properties", label: "Properties" },
+  { href: "/finance/categories", label: "Categories" },
   { href: "/finance/insights", label: "Insight History" },
 ];
 

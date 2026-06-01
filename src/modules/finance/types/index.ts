@@ -54,6 +54,7 @@ export interface Transaction {
   category?: Category;
   account?: Account;
   property?: Property;
+  splits?: TransactionSplit[];
 }
 
 export interface Category {
@@ -63,6 +64,7 @@ export interface Category {
   type: CategoryType;
   sort_order: number;
   icon: string | null;
+  tax_category?: string | null;
   is_active?: boolean;
   is_temporary?: boolean;
   created_at?: string;
@@ -84,7 +86,26 @@ export interface Property {
   monthly_rent_target: number;
   is_active: boolean;
   notes: string | null;
+  tenant_name?: string | null;
+  lease_start?: string | null;
+  lease_end?: string | null;
+  security_deposit?: number;
+  monthly_mortgage?: number;
+  monthly_insurance?: number;
+  monthly_taxes?: number;
+  monthly_hoa?: number;
   created_at?: string;
+}
+
+export interface TransactionSplit {
+  id: string;
+  parent_transaction_id: string;
+  amount: number;
+  portal_category_id: string | null;
+  property_id: string | null;
+  notes: string | null;
+  category_name?: string | null;
+  property_name?: string | null;
 }
 
 export interface CategorySpend extends Category {
@@ -97,4 +118,50 @@ export interface MonthSummary {
   total_income: number;
   days_elapsed: number;
   days_in_month: number;
+}
+
+export interface AssetLiability {
+  id: string;
+  name: string;
+  value: number;
+  type: "asset_real_estate" | "asset_vehicle" | "asset_investment" | "liability_mortgage" | "liability_loan" | "liability_other";
+  notes: string | null;
+  property_id: string | null;
+  updated_at?: string;
+  created_at?: string;
+}
+
+export interface NetWorthSnapshot {
+  id: string;
+  date: string;
+  total_assets: number;
+  total_liabilities: number;
+  net_worth: number;
+}
+
+export interface RecurringBill {
+  id: string;
+  name: string;
+  amount: number;
+  frequency: "monthly" | "yearly" | "weekly";
+  due_day: number;
+  portal_category_id: string | null;
+  notes: string | null;
+  is_active: boolean;
+  last_paid_date: string | null;
+  category_name?: string | null;
+  created_at?: string;
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  target_amount: number;
+  current_amount: number;
+  target_date: string | null;
+  notes: string | null;
+  is_completed: boolean;
+  account_id: string | null;
+  account_name?: string | null;
+  created_at?: string;
 }

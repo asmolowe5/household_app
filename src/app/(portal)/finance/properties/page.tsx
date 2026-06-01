@@ -3,38 +3,39 @@ import { FinancesEmptyState } from "@/modules/finance/components/empty-state";
 import { PropertiesClient } from "@/modules/finance/components/properties-client";
 import { db } from "@/db";
 import { transactions, categories } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, isNotNull } from "drizzle-orm";
 import type { Transaction } from "@/modules/finance/types";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
 export default async function PropertiesPage() {
-  const accountsList = await getAccounts();
-  const categoryList = await getCategories();
-  const propertyList = await getProperties();
+  const [accountsList, categoryList, propertyList, rows] = await Promise.all([
+    getAccounts(),
+    getCategories(),
+    getProperties(),
+    db
+      .select({
+        id: transactions.id,
+        date: transactions.date,
+        amount: transactions.amount,
+        merchantName: transactions.merchantName,
+        transactionType: transactions.transactionType,
+        isReviewed: transactions.isReviewed,
+        notes: transactions.notes,
+        categoryName: categories.name,
+        categoryIcon: categories.icon,
+        propertyId: transactions.propertyId,
+      })
+      .from(transactions)
+      .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
+      .where(isNotNull(transactions.propertyId))
+      .orderBy(desc(transactions.date)),
+  ]);
 
   if (accountsList.length === 0) {
     return <FinancesEmptyState />;
   }
-
-  // Fetch all transactions with categories to calculate property stats
-  const rows = await db
-    .select({
-      id: transactions.id,
-      date: transactions.date,
-      amount: transactions.amount,
-      merchantName: transactions.merchantName,
-      transactionType: transactions.transactionType,
-      isReviewed: transactions.isReviewed,
-      notes: transactions.notes,
-      categoryName: categories.name,
-      categoryIcon: categories.icon,
-      propertyId: transactions.propertyId,
-    })
-    .from(transactions)
-    .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
-    .orderBy(desc(transactions.date));
 
   const txnData: Transaction[] = rows.map((r) => ({
     id: r.id,

@@ -9,32 +9,32 @@ import { Suspense } from "react";
 export const dynamic = "force-dynamic";
 
 export default async function TransactionsPage() {
-  const accountList = await getAccounts();
-  const categoryList = await getCategories();
-  const propertyList = await getProperties();
-  const reviewCount = await getReviewCount();
-
-  // Fetch all transactions with categories and account information
-  const rows = await db
-    .select({
-      id: transactions.id,
-      date: transactions.date,
-      amount: transactions.amount,
-      merchantName: transactions.merchantName,
-      transactionType: transactions.transactionType,
-      isReviewed: transactions.isReviewed,
-      notes: transactions.notes,
-      categoryName: categories.name,
-      categoryIcon: categories.icon,
-      accountName: accounts.name,
-      accountCustomName: accounts.customName,
-      accountId: accounts.id,
-      propertyId: transactions.propertyId,
-    })
-    .from(transactions)
-    .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
-    .innerJoin(accounts, eq(transactions.accountId, accounts.id))
-    .orderBy(desc(transactions.date), desc(transactions.createdAt));
+  const [accountList, categoryList, propertyList, reviewCount, rows] = await Promise.all([
+    getAccounts(),
+    getCategories(),
+    getProperties(),
+    getReviewCount(),
+    db
+      .select({
+        id: transactions.id,
+        date: transactions.date,
+        amount: transactions.amount,
+        merchantName: transactions.merchantName,
+        transactionType: transactions.transactionType,
+        isReviewed: transactions.isReviewed,
+        notes: transactions.notes,
+        categoryName: categories.name,
+        categoryIcon: categories.icon,
+        accountName: accounts.name,
+        accountCustomName: accounts.customName,
+        accountId: accounts.id,
+        propertyId: transactions.propertyId,
+      })
+      .from(transactions)
+      .leftJoin(categories, eq(transactions.portalCategoryId, categories.id))
+      .innerJoin(accounts, eq(transactions.accountId, accounts.id))
+      .orderBy(desc(transactions.date), desc(transactions.createdAt)),
+  ]);
 
   const txnData: (Transaction & { account_name: string; account_id: string; notes: string | null })[] = rows.map((r) => ({
     id: r.id,

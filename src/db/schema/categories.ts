@@ -10,6 +10,7 @@ export const categories = pgTable("categories", {
   isTemporary: boolean("is_temporary").default(false),
   sortOrder: integer("sort_order").default(0),
   icon: text("icon"),
+  taxCategory: text("tax_category"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 

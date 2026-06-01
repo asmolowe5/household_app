@@ -6,3 +6,8 @@ export { categories, categoryRules } from "./categories";
 export { transactions } from "./transactions";
 export { financeInsights } from "./finance-insights";
 export { properties } from "./properties";
+export { transactionSplits } from "./transaction-splits";
+export { assetsLiabilities } from "./assets-liabilities";
+export { netWorthSnapshots } from "./net-worth-snapshots";
+export { recurringBills } from "./recurring-bills";
+export { savingsGoals } from "./savings-goals";

@@ -23,4 +23,5 @@ export const transactions = pgTable("transactions", {
   index("idx_transactions_account").on(table.accountId),
   index("idx_transactions_category").on(table.portalCategoryId),
   index("idx_transactions_type").on(table.transactionType),
+  index("idx_transactions_property").on(table.propertyId),
 ]);

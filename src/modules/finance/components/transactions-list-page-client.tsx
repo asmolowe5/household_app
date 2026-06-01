@@ -23,6 +23,7 @@ import {
   Zap,
   Shield,
   Repeat,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
@@ -92,6 +93,68 @@ export function TransactionsListPageClient({
 
   // Selected details transaction
   const [selectedTxn, setSelectedTxn] = useState<ExtendedTransaction | null>(null);
+
+  // Manual transaction form state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTxnDate, setNewTxnDate] = useState(new Date().toISOString().split("T")[0]);
+  const [newTxnMerchant, setNewTxnMerchant] = useState("");
+  const [newTxnAmount, setNewTxnAmount] = useState("");
+  const [newTxnType, setNewTxnType] = useState<Transaction["transaction_type"]>("expense");
+  const [newTxnAccountId, setNewTxnAccountId] = useState("");
+  const [newTxnCategoryId, setNewTxnCategoryId] = useState("");
+  const [newTxnPropertyId, setNewTxnPropertyId] = useState("");
+  const [newTxnNotes, setNewTxnNotes] = useState("");
+  const [addingTxn, setAddingTxn] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+
+  // Set default account id on modal open or mount
+  useEffect(() => {
+    if (accounts.length > 0 && !newTxnAccountId) {
+      setNewTxnAccountId(accounts[0].id);
+    }
+  }, [accounts, newTxnAccountId]);
+
+  async function handleAddTransaction(e: React.FormEvent) {
+    e.preventDefault();
+    setAddingTxn(true);
+    setAddError(null);
+    try {
+      const res = await fetch("/api/finance/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: newTxnDate,
+          amount: Number(newTxnAmount),
+          merchant_name: newTxnMerchant,
+          portal_category_id: newTxnCategoryId || null,
+          property_id: newTxnPropertyId || null,
+          notes: newTxnNotes || null,
+          account_id: newTxnAccountId || null,
+          transaction_type: newTxnType,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setShowAddModal(false);
+        // Reset form
+        setNewTxnMerchant("");
+        setNewTxnAmount("");
+        setNewTxnNotes("");
+        setNewTxnCategoryId("");
+        setNewTxnPropertyId("");
+        startTransition(() => {
+          router.refresh();
+        });
+      } else {
+        setAddError(data.error ?? "Failed to add manual transaction");
+      }
+    } catch {
+      setAddError("Network error adding manual transaction");
+    } finally {
+      setAddingTxn(false);
+    }
+  }
 
   // Filter transactions
   const visibleAccounts = accounts.filter((a) => a.is_visible);
@@ -174,14 +237,23 @@ export function TransactionsListPageClient({
           </p>
         </div>
 
-        <button
-          onClick={handleRunAI}
-          disabled={runningAI || isPending}
-          className="flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-slate-950 transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          <BrainCircuit size={14} className={runningAI ? "animate-pulse" : ""} />
-          {runningAI ? "Running AI..." : "Run AI Categorization"}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center justify-center gap-2 rounded-lg border border-border-default px-4 py-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-tertiary"
+          >
+            <span>+ Add Transaction</span>
+          </button>
+
+          <button
+            onClick={handleRunAI}
+            disabled={runningAI || isPending}
+            className="flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-slate-950 transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            <BrainCircuit size={14} className={runningAI ? "animate-pulse" : ""} />
+            {runningAI ? "Running AI..." : "Run AI Categorization"}
+          </button>
+        </div>
       </div>
 
       {/* Notifications */}
@@ -369,6 +441,161 @@ export function TransactionsListPageClient({
           properties={properties}
           onClose={() => setSelectedTxn(null)}
         />
+      )}
+
+      {/* Manual Transaction Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
+          <div className="relative w-full max-w-md rounded-2xl border border-border-default bg-bg-secondary p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border-default pb-4 mb-4">
+              <h2 className="text-base font-semibold text-text-primary">Add Manual Transaction</h2>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="rounded-lg p-1.5 text-text-tertiary transition-colors hover:bg-bg-tertiary hover:text-text-primary"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {addError && (
+              <div className="mb-4 rounded-lg bg-status-red/10 border border-status-red/20 p-3 text-xs text-status-red">
+                {addError}
+              </div>
+            )}
+
+            <form onSubmit={handleAddTransaction} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={newTxnDate}
+                    onChange={(e) => setNewTxnDate(e.target.value)}
+                    className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none [color-scheme:dark]"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Amount ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="0.00"
+                    value={newTxnAmount}
+                    onChange={(e) => setNewTxnAmount(e.target.value)}
+                    className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-text-secondary">Merchant / Payee</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Home Depot, Target, Rent payment"
+                  value={newTxnMerchant}
+                  onChange={(e) => setNewTxnMerchant(e.target.value)}
+                  className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Type</label>
+                  <select
+                    value={newTxnType}
+                    onChange={(e) => setNewTxnType(e.target.value as Transaction["transaction_type"])}
+                    className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:outline-none"
+                  >
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                    <option value="savings_transfer">Savings Transfer</option>
+                    <option value="internal_transfer">Internal Transfer</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Account</label>
+                  <select
+                    required
+                    value={newTxnAccountId}
+                    onChange={(e) => setNewTxnAccountId(e.target.value)}
+                    className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:outline-none"
+                  >
+                    <option value="" disabled>Select Account</option>
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.custom_name ?? acc.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Category</label>
+                  <select
+                    value={newTxnCategoryId}
+                    onChange={(e) => setNewTxnCategoryId(e.target.value)}
+                    className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:outline-none"
+                  >
+                    <option value="">Uncategorized</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-text-secondary">Property Link</label>
+                  <select
+                    value={newTxnPropertyId}
+                    onChange={(e) => setNewTxnPropertyId(e.target.value)}
+                    className="rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:outline-none"
+                  >
+                    <option value="">None / Personal</option>
+                    {properties.map((prop) => (
+                      <option key={prop.id} value={prop.id}>
+                        {prop.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-text-secondary">Notes</label>
+                <textarea
+                  placeholder="Additional transaction details..."
+                  value={newTxnNotes}
+                  onChange={(e) => setNewTxnNotes(e.target.value)}
+                  className="w-full h-20 rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-sm text-text-primary resize-none focus:outline-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 rounded-lg border border-border-default px-4 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-tertiary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addingTxn}
+                  className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-slate-950 transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  {addingTxn ? "Adding..." : "Add Transaction"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

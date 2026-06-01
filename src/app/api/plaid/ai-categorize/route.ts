@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { transactions, accounts, plaidItems } from "@/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { getCategories } from "@/modules/finance/queries";
-import { categorizeTransactionWithAI } from "@/modules/finance/lib/ai-categorizer";
+import { categorizeTransactionsWithAIBatch } from "@/modules/finance/lib/ai-categorizer";
 
 export async function POST() {
   const user = await getCurrentUser();
@@ -39,30 +39,36 @@ export async function POST() {
       return NextResponse.json({ success: true, count: 0, message: "No uncategorized transactions found" });
     }
 
+    const aiInputs = uncatTxns.map((t) => ({
+      id: t.id,
+      merchantName: t.merchantName ?? "Unknown Merchant",
+      plaidCategories: t.plaidCategory ?? [],
+      amount: t.amount ? Number(t.amount) : 0,
+    }));
+
+    const aiResults = await categorizeTransactionsWithAIBatch(aiInputs, availableCategories);
+
     let processedCount = 0;
+    const updatePromises = [];
+
     for (const txn of uncatTxns) {
-      const amount = txn.amount ? Number(txn.amount) : 0;
-      const merchantName = txn.merchantName ?? "Unknown Merchant";
-      const plaidCategory = txn.plaidCategory ?? [];
-
-      const aiResult = await categorizeTransactionWithAI(
-        merchantName,
-        plaidCategory,
-        amount,
-        availableCategories,
-      );
-
+      const aiResult = aiResults.get(txn.id);
       if (aiResult && aiResult.categoryId) {
-        await db
-          .update(transactions)
-          .set({
-            portalCategoryId: aiResult.categoryId,
-            notes: `AI suggested: ${aiResult.reasoning}`,
-          })
-          .where(eq(transactions.id, txn.id));
-
+        updatePromises.push(
+          db
+            .update(transactions)
+            .set({
+              portalCategoryId: aiResult.categoryId,
+              notes: `AI suggested: ${aiResult.reasoning}`,
+            })
+            .where(eq(transactions.id, txn.id))
+        );
         processedCount++;
       }
+    }
+
+    if (updatePromises.length > 0) {
+      await Promise.all(updatePromises);
     }
 
     return NextResponse.json({
